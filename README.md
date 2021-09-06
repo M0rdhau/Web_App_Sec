@@ -2,6 +2,4 @@
 
 ## Homeworks:
 
-* Ancient Crypto
-
-Implement Vigenere and Caesar cipher, in a way that works with all the characters, even emojis
+1. __Ancient Crypto__: Implement Vigenere and Caesar cipher, in a way that works with all the characters, even emojis.
