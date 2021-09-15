@@ -1,54 +1,73 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace HW_1_Ancient_Crypto
 {
     class Program
     {
+        private const int MAX_UTF32 = 0x10FFFF;
+        private enum StringType
+        {
+            
+        }
+
+        static string GetInputString( bool  )
+        {
+            bool isValid = false;
+            var plaintext = "";
+            while (!isValid)
+            {
+                Console.WriteLine("Please input the plaintext, or 'C' to cancel: ");
+                plaintext = Console.ReadLine() ?? "";
+                if (plaintext == "")
+                {
+                    Console.WriteLine("Not a valid string!");
+                    continue;
+                }
+                isValid = true;
+            }
+            return plaintext;
+        }
+
         static void doCaesar()
         {
             var inputIsValid = false;
             var shiftString = "";
             var shiftInt = 0;
-            Console.WriteLine("caeeesar");
             do
             {
                 Console.WriteLine("Please input the shift, or 'C' to cancel: ");
                 shiftString = Console.ReadLine();
                 if (!int.TryParse(shiftString, out shiftInt) && shiftString?.Trim().ToUpper() != "C")
                 {
-                    Console.WriteLine("Not a valid string!");
+                    Console.WriteLine("Not a valid shift!");
                     continue;
                 }
                 Console.WriteLine($"Caesar shift: {shiftInt}");
                 
-                Console.WriteLine("Please input the plaintext, or 'C' to cancel: ");
-                var plaintext = Console.ReadLine() ?? "";
-                var utf8 = new UTF8Encoding();
-                var utf32 = new UTF32Encoding();
-                var utf8bytes = utf8.GetBytes(plaintext);
-                var utf32bytes = utf32.GetBytes(plaintext);
-                // for (int i = 0; i < utf8bytes.Length; i++)
-                // {
-                //     Console.WriteLine(utf8bytes[i]);
-                // }
-                // for (int i = 0; i < utf32bytes.Length; i++)
-                // {
-                //     Console.WriteLine(utf32bytes[i]);
-                // }
                 
-                var base64Str = System.Convert.ToBase64String(utf8bytes);
-                byte[] bytes = Convert.FromBase64String(base64Str);
-                for (int i = 0; i < bytes.Length; i++)
+                inputIsValid = true;
+                var enc = new UTF32Encoding();
+                
+                var ciphertext = "";
+                foreach (int unicodeCodePoint in plaintext.GetUnicodeCodePoints())
                 {
-                    Console.WriteLine(bytes[i]);
+                    ciphertext += char.ConvertFromUtf32((unicodeCodePoint + shiftInt) % MAX_UTF32);
                 }
-
+                Console.WriteLine("Ciphertext is: " + ciphertext);
             } while (!inputIsValid);
         }
 
         static void Main(string[] args)
         {
+            string s = "a🌀c🏯";
+            foreach(int unicodeCodePoint in s.GetUnicodeCodePoints())
+            {
+                Console.WriteLine(unicodeCodePoint);
+                Console.WriteLine(char.ConvertFromUtf32(unicodeCodePoint));
+                Console.WriteLine(char.ConvertFromUtf32(unicodeCodePoint + 10));
+            }
             Console.WriteLine("EZ Encryption EZE");
             
             // bool isOk = true;
@@ -84,6 +103,7 @@ namespace HW_1_Ancient_Crypto
                 }
                 else
                 {
+                    if(buff == "E") continue;
                     Console.WriteLine("Please enter one of the correct options.");
                     Console.WriteLine("C for Caesar");
                     Console.WriteLine("V for Vigenere");
@@ -92,8 +112,6 @@ namespace HW_1_Ancient_Crypto
                     buff = buff?.Trim().ToUpper();
                 }
             } while (buff != "E");
-
-            Console.WriteLine(buff);
         }
     }
 }

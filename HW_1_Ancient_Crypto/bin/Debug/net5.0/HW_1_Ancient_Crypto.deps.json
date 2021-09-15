@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "HW_1_Ancient_Crypto/1.0.0": {
+        "runtime": {
+          "HW_1_Ancient_Crypto.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "HW_1_Ancient_Crypto/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
