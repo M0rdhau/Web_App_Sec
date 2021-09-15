@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace HW_1_Ancient_Crypto
@@ -9,34 +10,39 @@ namespace HW_1_Ancient_Crypto
         private const int MAX_UTF32 = 0x10FFFF;
         private enum StringType
         {
-            
+            PlainText,
+            CipherText,
+            KeyText
         }
 
-        static string GetInputString( bool  )
+        static string GetInputString( StringType type )
         {
             bool isValid = false;
-            var plaintext = "";
+            var text = "";
+            var placeholder = type == StringType.CipherText ? "ciphertext"
+                : type == StringType.KeyText ? "key string"
+                : "plaintext";
             while (!isValid)
             {
-                Console.WriteLine("Please input the plaintext, or 'C' to cancel: ");
-                plaintext = Console.ReadLine() ?? "";
-                if (plaintext == "")
+                Console.WriteLine("Please input the " + placeholder + ", or 'C' to cancel: ");
+                text = Console.ReadLine() ?? "";
+                if (text == "")
                 {
                     Console.WriteLine("Not a valid string!");
                     continue;
                 }
                 isValid = true;
             }
-            return plaintext;
+            return text;
         }
 
-        static void doCaesar()
+        static void doCaesar(string shiftable, StringType type )
         {
             var inputIsValid = false;
-            var shiftString = "";
-            var shiftInt = 0;
             do
             {
+                var shiftString = "";
+                var shiftInt = 0;
                 Console.WriteLine("Please input the shift, or 'C' to cancel: ");
                 shiftString = Console.ReadLine();
                 if (!int.TryParse(shiftString, out shiftInt) && shiftString?.Trim().ToUpper() != "C")
@@ -44,38 +50,71 @@ namespace HW_1_Ancient_Crypto
                     Console.WriteLine("Not a valid shift!");
                     continue;
                 }
-                Console.WriteLine($"Caesar shift: {shiftInt}");
-                
-                
                 inputIsValid = true;
-                var enc = new UTF32Encoding();
-                
+                shiftInt = Math.Abs(shiftInt);
                 var ciphertext = "";
-                foreach (int unicodeCodePoint in plaintext.GetUnicodeCodePoints())
+                foreach (int unicodeCodePoint in shiftable.GetUnicodeCodePoints())
                 {
-                    ciphertext += char.ConvertFromUtf32((unicodeCodePoint + shiftInt) % MAX_UTF32);
+                    var unicodeValue = 0;
+                    if (type == StringType.PlainText)
+                    {
+                        unicodeValue = (unicodeCodePoint + shiftInt) % (MAX_UTF32 + 1);
+                        if (unicodeValue < 0x20) unicodeValue += 0x20;
+                    }else if (type == StringType.CipherText)
+                    {
+                        unicodeValue = (unicodeCodePoint - shiftInt) % (MAX_UTF32 + 1);
+                        if (unicodeValue < 0x20) unicodeValue = MAX_UTF32 - (0x20 - unicodeValue);
+                    }
+                    else
+                    {
+                        throw new Exception("Illegal argument value" + type);
+                    }
+
+                    ciphertext += char.ConvertFromUtf32(unicodeValue);
                 }
-                Console.WriteLine("Ciphertext is: " + ciphertext);
+                Console.WriteLine("Result is: " + ciphertext);
+            } while (!inputIsValid);
+        }
+
+        static void doVigenere(string inputText, StringType type)
+        {
+            var inputIsValid = false;
+            do
+            {
+                var keyString = "";
+                Console.WriteLine("Please enter key string, or 'C' to cancel:");
+                keyString = GetInputString(StringType.KeyText);
+                if (keyString.Length != inputText.Length)
+                {
+                    Console.WriteLine("Key string and Input string should be of the same length - " + inputText.Length);
+                    continue;
+                }
+
+                inputIsValid = true;
+                var cipherText = "";
+                foreach (var codePoints in inputText.GetUnicodeCodePoints().Zip(keyString.GetUnicodeCodePoints()))
+                {
+                    var unicodeValue = 0;
+                    if (type == StringType.PlainText)
+                    {
+                        unicodeValue = (codePoints.First + codePoints.Second) % (MAX_UTF32 + 1);
+                        if (unicodeValue < 0x20) unicodeValue += 0x20;
+                    }else if (type == StringType.CipherText)
+                    {
+                        unicodeValue = (codePoints.First - codePoints.Second) % (MAX_UTF32 + 1);
+                        if (unicodeValue < 0x20) unicodeValue = MAX_UTF32 - (0x20 - unicodeValue);
+                    }
+
+                    cipherText += char.ConvertFromUtf32(unicodeValue);
+                }
+                Console.WriteLine("Result: " + cipherText);
             } while (!inputIsValid);
         }
 
         static void Main(string[] args)
         {
-            string s = "a🌀c🏯";
-            foreach(int unicodeCodePoint in s.GetUnicodeCodePoints())
-            {
-                Console.WriteLine(unicodeCodePoint);
-                Console.WriteLine(char.ConvertFromUtf32(unicodeCodePoint));
-                Console.WriteLine(char.ConvertFromUtf32(unicodeCodePoint + 10));
-            }
-            Console.WriteLine("EZ Encryption EZE");
+            Console.WriteLine("EZ Encryption: EZE ");
             
-            // bool isOk = true;
-            // for (int i = 0; i < buff.Length; i++)
-            // {
-            //     Console.WriteLine();
-            //     isOk = (buff[i] - '0' > 64 && buff[i] - '0' < 91) || (buff[i] - '0' > 96 && buff[i] - '0' < 123);
-            // }
             String buff;
             do
             {
@@ -85,20 +124,20 @@ namespace HW_1_Ancient_Crypto
                 Console.WriteLine("E for Exit");
                 buff = Console.ReadLine();
                 buff = buff?.Trim().ToUpper();
-                if (buff != "E")
+                if (buff == "V" || buff == "C")
                 {
                     Console.WriteLine("Enter 'E' for Encryption, 'D' for Decryption");
-                    String ed  = Console.ReadLine();
+                    var ed  = Console.ReadLine();
                     ed = ed?.Trim().ToUpper();
-                    // Console.WriteLine("Enter plaintext:");
-                    // String plaintext = Console.ReadLine();
+                    var type = ed == "E" ? StringType.PlainText : StringType.CipherText;
+                    var text = GetInputString(type);
                     if (buff == "C")
                     {
-                        doCaesar();
+                        doCaesar(text, type);
                     }
                     else
                     {
-                        Console.WriteLine("Please input the Cipher:");
+                        doVigenere(text, type);
                     }
                 }
                 else
