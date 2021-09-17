@@ -5,12 +5,28 @@ namespace HW_1_Ancient_Crypto
 {
     class Program
     {
-        private const int MaxUtf32 = 0x10FFFF;
+        private const int MaxUtf32 = 0x10F800; //actually 0x10FFFF but I took UTF8's ceiling
         private enum StringType
         {
             PlainText,
             CipherText,
             KeyText
+        }
+
+        private static int RotateCharacterValue(int charValue, int keyValue, StringType type)
+        {
+            if(type == StringType.KeyText) throw new Exception("Illegal argument value" + type);
+            for (int i = 0; i < keyValue; i++)
+            {
+                charValue = charValue < 0 ? MaxUtf32 - charValue : charValue;
+                charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
+                    while (char.IsControl(char.ConvertFromUtf32(charValue), 0))
+                    {
+                        charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
+                    }
+            }
+
+            return charValue;
         }
 
         private static string GetInputString( StringType type )
@@ -41,7 +57,8 @@ namespace HW_1_Ancient_Crypto
             {
                 Console.WriteLine("Please input the shift, or 'C' to cancel: ");
                 var shiftString = Console.ReadLine();
-                if (!int.TryParse(shiftString, out var shiftInt) && shiftString?.Trim().ToUpper() != "C")
+                if (shiftString?.Trim().ToUpper() == "C") return;
+                if (!int.TryParse(shiftString, out var shiftInt))
                 {
                     Console.WriteLine("Not a valid shift!");
                     continue;
@@ -49,22 +66,9 @@ namespace HW_1_Ancient_Crypto
                 inputIsValid = true;
                 shiftInt = Math.Abs(shiftInt);
                 var ciphertext = "";
-                foreach (int unicodeCodePoint in shiftable.GetUnicodeCodePoints())
+                foreach (var unicodeCodePoint in shiftable.GetUnicodeCodePoints())
                 {
-                    int unicodeValue;
-                    if (type == StringType.PlainText)
-                    {
-                        unicodeValue = (unicodeCodePoint + shiftInt) % (MaxUtf32 + 1);
-                        if (unicodeValue < 0x20) unicodeValue += 0x20;
-                    }else if (type == StringType.CipherText)
-                    {
-                        unicodeValue = (unicodeCodePoint - shiftInt) % (MaxUtf32 + 1);
-                        if (unicodeValue < 0x20) unicodeValue = MaxUtf32 - (0x20 - unicodeValue);
-                    }
-                    else
-                    {
-                        throw new Exception("Illegal argument value" + type);
-                    }
+                    var unicodeValue = RotateCharacterValue(unicodeCodePoint, shiftInt, type);
                     Console.WriteLine(unicodeValue + char.ConvertFromUtf32(unicodeValue));
                     ciphertext += char.ConvertFromUtf32(unicodeValue);
                 }
@@ -74,36 +78,48 @@ namespace HW_1_Ancient_Crypto
 
         static void DoVigenere(string inputText, StringType type)
         {
-            var inputIsValid = false;
-            do
+            Console.WriteLine("Please enter key string, or 'C' to cancel:");
+            var keyString = "";
+            var inputValid = false;
+            while (!inputValid)
             {
-                Console.WriteLine("Please enter key string, or 'C' to cancel:");
-                var keyString = GetInputString(StringType.KeyText);
-                if (keyString.Length > inputText.Length)
+                keyString = GetInputString(StringType.KeyText);
+                if (keyString?.Trim().ToUpper() == "C")
                 {
-                    Console.WriteLine("Key string and Input string should be of the same length - " + inputText.Length);
-                    continue;
+                    return;
                 }
 
-                inputIsValid = true;
-                var cipherText = "";
-                foreach (var codePoints in inputText.GetUnicodeCodePoints().Zip(keyString.GetUnicodeCodePoints()))
+                if (keyString == null)
                 {
-                    var unicodeValue = 0;
-                    if (type == StringType.PlainText)
-                    {
-                        unicodeValue = (codePoints.First + codePoints.Second) % (MaxUtf32 + 1);
-                        if (unicodeValue < 0x20) unicodeValue += 0x20;
-                    }else if (type == StringType.CipherText)
-                    {
-                        unicodeValue = (codePoints.First - codePoints.Second) % (MaxUtf32 + 1);
-                        if (unicodeValue < 0x20) unicodeValue = MaxUtf32 - (0x20 - unicodeValue);
-                    }
-                    Console.WriteLine(unicodeValue + char.ConvertFromUtf32(unicodeValue));
-                    cipherText += char.ConvertFromUtf32(unicodeValue);
+                    Console.WriteLine("Invalid input!");
                 }
-                Console.WriteLine("Result: \"" + cipherText + "\"");
-            } while (!inputIsValid);
+                else
+                {
+                    inputValid = true;
+                }
+                
+            }
+
+            if (keyString.Length != inputText.Length)
+            {
+                while (keyString.Length < inputText.Length)
+                {
+                    keyString += keyString;
+                }
+
+                keyString = keyString.Substring(0, inputText.Length);
+            }
+
+            var cipherText = "";
+            foreach (var codePoints in inputText.GetUnicodeCodePoints().Zip(keyString.GetUnicodeCodePoints()))
+            {
+                var unicodeValue = RotateCharacterValue(codePoints.First, codePoints.Second, type);
+                Console.WriteLine(unicodeValue + char.ConvertFromUtf32(unicodeValue));
+                Console.WriteLine("Plain :" + codePoints.First + " - " + char.ConvertFromUtf32(codePoints.First));
+                Console.WriteLine("Key :" + codePoints.Second + " - " + char.ConvertFromUtf32(codePoints.Second));
+                cipherText += char.ConvertFromUtf32(unicodeValue);
+            }
+            Console.WriteLine("Result: \"" + cipherText + "\"");
         }
 
         static void Main()
@@ -124,7 +140,15 @@ namespace HW_1_Ancient_Crypto
                     Console.WriteLine("Enter 'E' for Encryption, 'D' for Decryption");
                     var ed  = Console.ReadLine();
                     ed = ed?.Trim().ToUpper();
-                    var type = ed == "E" ? StringType.PlainText : StringType.CipherText;
+                    var type = ed == "E" ? StringType.PlainText 
+                        : ed == "D" ? StringType.CipherText
+                            : StringType.KeyText;
+                    if (type == StringType.KeyText)
+                    {
+                        Console.WriteLine("Please enter one of the correct options.");
+                        continue;
+                    }
+
                     var text = GetInputString(type);
                     if (buff == "C")
                     {
