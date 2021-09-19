@@ -18,12 +18,30 @@ namespace HW_1_Ancient_Crypto
             if(type == StringType.KeyText) throw new Exception("Illegal argument value" + type);
             for (int i = 0; i < keyValue; i++)
             {
-                charValue = charValue < 0 ? MaxUtf32 - charValue : charValue;
                 charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
+                charValue = charValue < 0 ? MaxUtf32 - charValue : charValue;
+                if (charValue is >= 0xd800 and <= 0xdfff)
+                {
+                    charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1 ;
+                }
+                try
+                {
                     while (char.IsControl(char.ConvertFromUtf32(charValue), 0))
                     {
                         charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
+                        charValue = charValue < 0 ? MaxUtf32 - charValue : charValue;
+                        if (charValue is >= 0xd800 and <= 0xdfff)
+                        {
+                            charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1;
+                        }
                     }
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    Console.WriteLine("charValue = " + charValue);
+                    Console.WriteLine(ex.ToString());
+                    return 1;
+                }
             }
 
             return charValue;
@@ -69,7 +87,6 @@ namespace HW_1_Ancient_Crypto
                 foreach (var unicodeCodePoint in shiftable.GetUnicodeCodePoints())
                 {
                     var unicodeValue = RotateCharacterValue(unicodeCodePoint, shiftInt, type);
-                    Console.WriteLine(unicodeValue + char.ConvertFromUtf32(unicodeValue));
                     ciphertext += char.ConvertFromUtf32(unicodeValue);
                 }
                 Console.WriteLine("Result: \"" + ciphertext + "\"");
@@ -78,7 +95,6 @@ namespace HW_1_Ancient_Crypto
 
         static void DoVigenere(string inputText, StringType type)
         {
-            Console.WriteLine("Please enter key string, or 'C' to cancel:");
             var keyString = "";
             var inputValid = false;
             while (!inputValid)
@@ -100,21 +116,19 @@ namespace HW_1_Ancient_Crypto
                 
             }
 
-            if (keyString.Length != inputText.Length)
+            if (keyString.GetUtf32Length() != inputText.GetUtf32Length())
             {
-                while (keyString.Length < inputText.Length)
+                while (keyString.GetUtf32Length() < inputText.GetUtf32Length())
                 {
                     keyString += keyString;
                 }
-
-                keyString = keyString.Substring(0, inputText.Length);
+                keyString = keyString.Utf32Substring(0, inputText.GetUtf32Length());
             }
 
             var cipherText = "";
             foreach (var codePoints in inputText.GetUnicodeCodePoints().Zip(keyString.GetUnicodeCodePoints()))
             {
                 var unicodeValue = RotateCharacterValue(codePoints.First, codePoints.Second, type);
-                Console.WriteLine(unicodeValue + char.ConvertFromUtf32(unicodeValue));
                 Console.WriteLine("Plain :" + codePoints.First + " - " + char.ConvertFromUtf32(codePoints.First));
                 Console.WriteLine("Key :" + codePoints.Second + " - " + char.ConvertFromUtf32(codePoints.Second));
                 cipherText += char.ConvertFromUtf32(unicodeValue);
@@ -124,8 +138,23 @@ namespace HW_1_Ancient_Crypto
 
         static void Main()
         {
-            Console.WriteLine("EZ Encryption: EZE ");
-            
+            // var dumbString1 = "⏰";
+            // var dumbString2 = "🍆";
+            // var dumbString3 = dumbString2.Normalize();
+            // foreach(var characterAtPoint in dumbString1){
+            //     Console.WriteLine(characterAtPoint);
+            // }
+            // Console.WriteLine("Length: " + dumbString1.Length);
+            // foreach(var characterAtPoint in dumbString2){
+            //     Console.WriteLine(characterAtPoint);
+            // }
+            //
+            // Console.WriteLine("Length: " + dumbString2.Length);
+            // foreach(var characterAtPoint in dumbString3){
+            //     Console.WriteLine(characterAtPoint);
+            // }
+            // Console.WriteLine("Length: " + dumbString3.Length);
+            // Console.WriteLine("EZ Encryption: EZE ");
             String buff;
             do
             {
@@ -142,7 +171,7 @@ namespace HW_1_Ancient_Crypto
                     ed = ed?.Trim().ToUpper();
                     var type = ed == "E" ? StringType.PlainText 
                         : ed == "D" ? StringType.CipherText
-                            : StringType.KeyText;
+                        : StringType.KeyText;
                     if (type == StringType.KeyText)
                     {
                         Console.WriteLine("Please enter one of the correct options.");
