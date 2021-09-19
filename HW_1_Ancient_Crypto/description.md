@@ -16,7 +16,7 @@ Because I can
 
 When dealing with UTF32, there are two types of bumps on the road - surrogate bytes and control characters.
 Surrogate bytes are well known, their range is from 0xd800 to 0xdfff.
-Unlike ASCII, where the control characters are at the end, in UTF32 the control characters are everywhere, and making the program know where each and every one of them is, is a nightmare. Instead of being aware of the control characters, this program just skips them all together, and, to the surprise of some, can regenerate the plaintext correctly. The following is the algorithm:
+Unlike ASCII, where the control characters are at the start, in UTF32 the control characters are everywhere, and making the program know where each and every one of them is, is a nightmare. Instead of being aware of the control characters, this program just skips them all together, and, to the surprise of some, can regenerate the plaintext correctly. The following is the algorithm:
 
 ![](Ancient_Crypto.png)
 
