@@ -167,7 +167,7 @@ namespace HW_1_Ancient_Crypto
                     Console.WriteLine("V for Vigenere");
                     Console.WriteLine("E for Exit");
                     buff = Console.ReadLine();
-                    buff = buff?.Trim().ToUpper();
+                    buff = buff?.Trim().ToUpper();    
                 }
             } while (buff != "E");
         }
