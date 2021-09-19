@@ -24,23 +24,14 @@ namespace HW_1_Ancient_Crypto
                 {
                     charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1 ;
                 }
-                try
+                while (char.IsControl(char.ConvertFromUtf32(charValue), 0))
                 {
-                    while (char.IsControl(char.ConvertFromUtf32(charValue), 0))
+                    charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
+                    charValue = charValue < 0 ? MaxUtf32 - charValue : charValue;
+                    if (charValue is >= 0xd800 and <= 0xdfff)
                     {
-                        charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
-                        charValue = charValue < 0 ? MaxUtf32 - charValue : charValue;
-                        if (charValue is >= 0xd800 and <= 0xdfff)
-                        {
-                            charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1;
-                        }
+                        charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1;
                     }
-                }
-                catch (ArgumentOutOfRangeException ex)
-                {
-                    Console.WriteLine("charValue = " + charValue);
-                    Console.WriteLine(ex.ToString());
-                    return 1;
                 }
             }
 
@@ -129,8 +120,6 @@ namespace HW_1_Ancient_Crypto
             foreach (var codePoints in inputText.GetUnicodeCodePoints().Zip(keyString.GetUnicodeCodePoints()))
             {
                 var unicodeValue = RotateCharacterValue(codePoints.First, codePoints.Second, type);
-                Console.WriteLine("Plain :" + codePoints.First + " - " + char.ConvertFromUtf32(codePoints.First));
-                Console.WriteLine("Key :" + codePoints.Second + " - " + char.ConvertFromUtf32(codePoints.Second));
                 cipherText += char.ConvertFromUtf32(unicodeValue);
             }
             Console.WriteLine("Result: \"" + cipherText + "\"");
@@ -138,23 +127,6 @@ namespace HW_1_Ancient_Crypto
 
         static void Main()
         {
-            // var dumbString1 = "⏰";
-            // var dumbString2 = "🍆";
-            // var dumbString3 = dumbString2.Normalize();
-            // foreach(var characterAtPoint in dumbString1){
-            //     Console.WriteLine(characterAtPoint);
-            // }
-            // Console.WriteLine("Length: " + dumbString1.Length);
-            // foreach(var characterAtPoint in dumbString2){
-            //     Console.WriteLine(characterAtPoint);
-            // }
-            //
-            // Console.WriteLine("Length: " + dumbString2.Length);
-            // foreach(var characterAtPoint in dumbString3){
-            //     Console.WriteLine(characterAtPoint);
-            // }
-            // Console.WriteLine("Length: " + dumbString3.Length);
-            // Console.WriteLine("EZ Encryption: EZE ");
             String buff;
             do
             {
