@@ -20,7 +20,7 @@ namespace HW_1_Ancient_Crypto
             {
                 charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
                 charValue = charValue < 0 ? MaxUtf32 + charValue : charValue;
-                charValue = charValue > MaxUtf32 ? charValue - MaxUtf32 : charValue;
+                charValue %= MaxUtf32;
                 if (charValue is >= 0xd800 and <= 0xdfff)
                 {
                     charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1 ;
@@ -29,7 +29,7 @@ namespace HW_1_Ancient_Crypto
                 {
                     charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
                     charValue = charValue < 0 ? MaxUtf32 + charValue : charValue;
-                    charValue = charValue > MaxUtf32 ? charValue - MaxUtf32 : charValue;
+                    charValue %= MaxUtf32;
                     if (charValue is >= 0xd800 and <= 0xdfff)
                     {
                         charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1;
@@ -77,7 +77,7 @@ namespace HW_1_Ancient_Crypto
                 inputIsValid = true;
                 shiftInt = shiftInt < 0 ? MaxUtf32 + shiftInt : shiftInt;
                 shiftInt = shiftInt % MaxUtf32;
-                Console.WriteLine("Shift: " + shiftInt + " (it's only positive numbers)");
+                Console.WriteLine("Shift: " + shiftInt);
                 var ciphertext = "";
                 foreach (var unicodeCodePoint in shiftable.GetUnicodeCodePoints())
                 {
