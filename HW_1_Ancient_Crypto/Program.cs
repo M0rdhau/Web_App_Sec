@@ -40,9 +40,10 @@ namespace HW_1_Ancient_Crypto
             return charValue;
         }
 
-        private static string GetInputString( StringType type )
+        private static string GetInputString( StringType type, out bool wrong )
         {
             var isValid = false;
+            wrong = false;
             var text = "";
             var placeholder = type == StringType.CipherText ? "ciphertext"
                 : type == StringType.KeyText ? "key string"
@@ -55,6 +56,9 @@ namespace HW_1_Ancient_Crypto
                 {
                     Console.WriteLine("Not a valid string!");
                     continue;
+                }else if(text?.Trim().ToUpper() == "C"){
+                    wrong = true;
+                    return "";
                 }
                 isValid = true;
             }
@@ -94,7 +98,7 @@ namespace HW_1_Ancient_Crypto
             var inputValid = false;
             while (!inputValid)
             {
-                keyString = GetInputString(StringType.KeyText);
+                keyString = GetInputString(StringType.KeyText, out var something);
                 if (keyString?.Trim().ToUpper() == "C")
                 {
                     return;
@@ -154,7 +158,9 @@ namespace HW_1_Ancient_Crypto
                         continue;
                     }
 
-                    var text = GetInputString(type);
+
+                    var text = GetInputString(type, out var isCancelled);
+                    if(isCancelled) continue;
                     if (buff == "C")
                     {
                         DoCaesar(text, type);
