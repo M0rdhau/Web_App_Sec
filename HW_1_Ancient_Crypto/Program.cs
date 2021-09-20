@@ -5,7 +5,7 @@ namespace HW_1_Ancient_Crypto
 {
     class Program
     {
-        private const int MaxUtf32 = 0x10F800; //actually 0x10FFFF but I took UTF8's ceiling
+        private const int MaxUtf32 = 0x10FFFF; //actually 0x10FFFF but I took UTF8's ceiling
         private enum StringType
         {
             PlainText,
@@ -19,7 +19,8 @@ namespace HW_1_Ancient_Crypto
             for (int i = 0; i < keyValue; i++)
             {
                 charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
-                charValue = charValue < 0 ? MaxUtf32 - charValue : charValue;
+                charValue = charValue < 0 ? MaxUtf32 + charValue : charValue;
+                charValue = charValue > MaxUtf32 ? charValue - MaxUtf32 : charValue;
                 if (charValue is >= 0xd800 and <= 0xdfff)
                 {
                     charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1 ;
@@ -27,7 +28,8 @@ namespace HW_1_Ancient_Crypto
                 while (char.IsControl(char.ConvertFromUtf32(charValue), 0))
                 {
                     charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
-                    charValue = charValue < 0 ? MaxUtf32 - charValue : charValue;
+                    charValue = charValue < 0 ? MaxUtf32 + charValue : charValue;
+                    charValue = charValue > MaxUtf32 ? charValue - MaxUtf32 : charValue;
                     if (charValue is >= 0xd800 and <= 0xdfff)
                     {
                         charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1;
@@ -73,7 +75,8 @@ namespace HW_1_Ancient_Crypto
                     continue;
                 }
                 inputIsValid = true;
-                shiftInt = shiftInt < 0 ? MaxUtf32 - shiftInt : shiftInt;
+                shiftInt = shiftInt < 0 ? MaxUtf32 + shiftInt : shiftInt;
+                shiftInt = shiftInt % MaxUtf32;
                 Console.WriteLine("Shift: " + shiftInt + " (it's only positive numbers)");
                 var ciphertext = "";
                 foreach (var unicodeCodePoint in shiftable.GetUnicodeCodePoints())
