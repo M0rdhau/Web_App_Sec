@@ -73,7 +73,8 @@ namespace HW_1_Ancient_Crypto
                     continue;
                 }
                 inputIsValid = true;
-                shiftInt = Math.Abs(shiftInt);
+                shiftInt = shiftInt < 0 ? MaxUtf32 - shiftInt : shiftInt;
+                Console.WriteLine("Shift: " + shiftInt + " (it's only positive numbers)")
                 var ciphertext = "";
                 foreach (var unicodeCodePoint in shiftable.GetUnicodeCodePoints())
                 {
