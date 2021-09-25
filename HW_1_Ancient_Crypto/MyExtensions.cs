@@ -15,7 +15,7 @@ namespace HW_1_Ancient_Crypto
                 {
                     unicodeCodePoint = char.ConvertToUtf32(s, i);
                 }
-                catch (ArgumentException ex)
+                catch
                 {
                     Console.WriteLine("Illegal input - text contains invalid characters!");
                     Console.WriteLine("Output will be slightly wrong");

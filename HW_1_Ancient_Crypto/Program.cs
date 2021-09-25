@@ -5,7 +5,7 @@ namespace HW_1_Ancient_Crypto
 {
     class Program
     {
-        private const int MaxUtf32 = 0x10FFFF; //actually 0x10FFFF but I took UTF8's ceiling
+        private const int MaxUtf32 = 0x10FFFF;
         private enum StringType
         {
             PlainText,
@@ -28,7 +28,10 @@ namespace HW_1_Ancient_Crypto
             // Modulo operator, in B % A should return ||B| - |A||
             // But what it actually returns, is -||B|%|A||
             // Next line remedies that
-            charValue = charValue < 0 ? MaxUtf32 + charValue : charValue;
+            while (charValue < 0)
+            {
+                charValue = MaxUtf32 + charValue;
+            }
             // loop back on the number field up from 0
             charValue %= MaxUtf32;
             // If character value lands in the surrogate number range, get out of there
@@ -69,7 +72,10 @@ namespace HW_1_Ancient_Crypto
             // Modulo operator, in B % A should return ||B| - |A||
             // But what it actually returns, is -||B|%|A||
             // Next line remedies that
-            shiftInt = shiftInt < 0 ? MaxUtf32 + shiftInt : shiftInt;
+            while (shiftInt < 0)
+            {
+                shiftInt = MaxUtf32 + shiftInt;
+            }
             // regular modulo operation
             shiftInt = shiftInt % MaxUtf32;
             Console.WriteLine($"Shift: {shiftInt}");
