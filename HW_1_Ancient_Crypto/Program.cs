@@ -6,6 +6,7 @@ namespace HW_1_Ancient_Crypto
     class Program
     {
         private const int MaxUtf32 = 0x10FFFF; //actually 0x10FFFF but I took UTF8's ceiling
+        private const string MainMenu = "";
         private enum StringType
         {
             PlainText,
@@ -13,28 +14,33 @@ namespace HW_1_Ancient_Crypto
             KeyText
         }
 
+        private static int NormalizeCharValue(int charValue, StringType type)
+        {
+            // If result is negative, make sure to loop back on the number field from maximum point
+            charValue = charValue < 0 ? MaxUtf32 + charValue : charValue;
+            // loop back on the number field up from 0
+            charValue %= MaxUtf32;
+            // If character value lands in the surrogate number range, get out of there
+            if (charValue is >= 0xd800 and <= 0xdfff)
+            {
+                charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1 ;
+            }
+
+            return charValue;
+        }
+
         private static int RotateCharacterValue(int charValue, int keyValue, StringType type)
         {
-            if(type == StringType.KeyText) throw new Exception("Illegal argument value" + type);
-            for (int i = 0; i < keyValue; i++)
+            if(type == StringType.KeyText) throw new Exception("Illegal argument value: " + type);
+            // Rotate character value. If encrypting, add key value, otherwise subtract
+            charValue = type == StringType.CipherText ? charValue - keyValue : charValue + keyValue;
+            charValue = NormalizeCharValue(charValue, type);
+            while (char.IsControl(char.ConvertFromUtf32(charValue), 0))
             {
+                // Rotate character value out of the undesirable number range.
+                // If encrypting, add key value, otherwise subtract
                 charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
-                charValue = charValue < 0 ? MaxUtf32 + charValue : charValue;
-                charValue %= MaxUtf32;
-                if (charValue is >= 0xd800 and <= 0xdfff)
-                {
-                    charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1 ;
-                }
-                while (char.IsControl(char.ConvertFromUtf32(charValue), 0))
-                {
-                    charValue = type == StringType.CipherText ? charValue - 1 : charValue + 1;
-                    charValue = charValue < 0 ? MaxUtf32 + charValue : charValue;
-                    charValue %= MaxUtf32;
-                    if (charValue is >= 0xd800 and <= 0xdfff)
-                    {
-                        charValue = type == StringType.CipherText ? 0xd800 - 1 : 0xdfff + 1;
-                    }
-                }
+                charValue = NormalizeCharValue(charValue, type);
             }
 
             return charValue;
