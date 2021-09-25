@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using TextCopy;
 
 namespace HW_1_Ancient_Crypto
 {
@@ -180,11 +181,16 @@ namespace HW_1_Ancient_Crypto
                 }
                 Console.WriteLine();
                 Console.WriteLine("Result is:");
-                Console.WriteLine($"###{resultString}###");
+                Console.WriteLine(resultString);
+                Console.WriteLine("Press [C] to [C]opy the string");
+                Console.WriteLine("Otherwise, press any button");
+                var buff = Console.ReadLine();
+                buff = buff?.Trim().ToUpper();
+                if(buff == "C") ClipboardService.SetText(resultString);
                 Console.WriteLine($"Would you like to {encMethod}  with {encName} again?");
                 Console.WriteLine("[Y]es");
-                Console.WriteLine("Anything else to go back to the previous menu");
-                var buff = Console.ReadLine();
+                Console.WriteLine("Otherwise, press any button");
+                buff = Console.ReadLine();
                 buff = buff?.Trim().ToUpper();
                 continueLooping = buff == "Y";
             }

@@ -14,3 +14,6 @@
 /home/kvartzweiss/Documents/3_Semester/WebAppSec/HW_1_Ancient_Crypto/obj/Debug/net5.0/ref/HW_1_Ancient_Crypto.dll
 /home/kvartzweiss/Documents/3_Semester/WebAppSec/HW_1_Ancient_Crypto/obj/Debug/net5.0/HW_1_Ancient_Crypto.pdb
 /home/kvartzweiss/Documents/3_Semester/WebAppSec/HW_1_Ancient_Crypto/obj/Debug/net5.0/HW_1_Ancient_Crypto.genruntimeconfig.cache
+/home/kvartzweiss/Documents/3_Semester/WebAppSec/HW_1_Ancient_Crypto/bin/Debug/net5.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+/home/kvartzweiss/Documents/3_Semester/WebAppSec/HW_1_Ancient_Crypto/bin/Debug/net5.0/TextCopy.dll
+/home/kvartzweiss/Documents/3_Semester/WebAppSec/HW_1_Ancient_Crypto/obj/Debug/net5.0/HW_1_Ancient_Crypto.csproj.CopyComplete

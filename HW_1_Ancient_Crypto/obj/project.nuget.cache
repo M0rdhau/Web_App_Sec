@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "JWIHW79c23pdFY1HB2zH+AyXqXWSKN2B5Srpx4w5ceXuQ9cotxQbvoL4SY727eWVrzeCNdisKrBRM5mR+6sFpg==",
+  "dgSpecHash": "VkfO6p0N8jgdsCWjQx0gf+0BplBMZVWCYm5GUNyfJLayVVj61biDw4em9g5RvArJDGqW7qYxcNF+BScy6qKeUQ==",
   "success": true,
   "projectFilePath": "/home/kvartzweiss/Documents/3_Semester/WebAppSec/HW_1_Ancient_Crypto/HW_1_Ancient_Crypto.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/home/kvartzweiss/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/5.0.0/microsoft.extensions.dependencyinjection.abstractions.5.0.0.nupkg.sha512",
+    "/home/kvartzweiss/.nuget/packages/textcopy/4.3.1/textcopy.4.3.1.nupkg.sha512"
+  ],
   "logs": []
 }
