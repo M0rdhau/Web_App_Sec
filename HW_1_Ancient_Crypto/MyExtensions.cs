@@ -17,8 +17,8 @@ namespace HW_1_Ancient_Crypto
                 }
                 catch (ArgumentException ex)
                 {
-                    Console.WriteLine("Illegal input");
-                    Console.WriteLine(ex.ToString());
+                    Console.WriteLine("Illegal input - text contains invalid characters!");
+                    Console.WriteLine("Output will be slightly wrong");
                 }
 
                 if (unicodeCodePoint > 0xffff)
