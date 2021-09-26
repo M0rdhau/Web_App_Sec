@@ -183,7 +183,7 @@ namespace HW_1_Ancient_Crypto
                 Console.WriteLine("Result is:");
                 Console.WriteLine(resultString);
                 Console.WriteLine("Press [C] to [C]opy the string");
-                Console.WriteLine("(Does not work in Docker)");
+                Console.WriteLine("(Only works on Linux, outside of Docker)");
                 Console.WriteLine("Otherwise, press any button");
                 var buff = Console.ReadLine();
                 buff = buff?.Trim().ToUpper();

@@ -8,6 +8,22 @@ In the 21st century, though, with such high level technologies such as C# and th
 
 It's a simple console application, with all the instructions written at runtime.
 
+## How to run
+
+If on Linux, `xsel` is required as a dependency for the copy command to work.
+To run it on your own machine, in the project directory, execute:
+
+```
+dotnet run
+```
+
+To run it in docker:
+
+```
+docker build -t hw1_damshv .
+docker run -it hw1_damshv
+```
+
 ## The why
 
 Because I can
@@ -21,3 +37,9 @@ Unlike ASCII, where the control characters are at the start, in UTF32 the contro
 ![](Ancient_Crypto.png)
 
 It looks pretty simple, but figuring out that control chars are everywhere took a test run of the code, and looking at the UTF table (a lot).
+
+## Concerns
+
+Some utf characters don't like to be copied correctly, hence the **copy** functionality in the application. Alas, it didn't work as intended - to make it work, only option that had a chance was to run an ssh server in the machine, and make the user ssh into the machine... too much headache.
+
+This, however, can be implemented in a much better way as a web application using js.
