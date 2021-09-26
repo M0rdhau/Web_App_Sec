@@ -183,10 +183,20 @@ namespace HW_1_Ancient_Crypto
                 Console.WriteLine("Result is:");
                 Console.WriteLine(resultString);
                 Console.WriteLine("Press [C] to [C]opy the string");
+                Console.WriteLine("(Does not work in Docker)");
                 Console.WriteLine("Otherwise, press any button");
                 var buff = Console.ReadLine();
                 buff = buff?.Trim().ToUpper();
-                if(buff == "C") ClipboardService.SetText(resultString);
+                try
+                {
+                    if (buff == "C") ClipboardService.SetText(resultString);
+                }
+                catch
+                {
+                    Console.WriteLine("Unsupported operation:");
+                    Console.WriteLine("On linux, install xsel");
+                    Console.WriteLine("On other platforms, just don't use this");
+                }
                 Console.WriteLine($"Would you like to {encMethod}  with {encName} again?");
                 Console.WriteLine("[Y]es");
                 Console.WriteLine("Otherwise, press any button");
