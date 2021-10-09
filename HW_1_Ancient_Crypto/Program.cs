@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using TextCopy;
 
 namespace HW_1_Ancient_Crypto
 {

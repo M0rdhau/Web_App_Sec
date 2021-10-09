@@ -1,21 +1,41 @@
 ﻿using System;
+using Diffie_Hellman.menus;
+using static Diffie_Hellman.menus.RotationMenu;
 
 namespace Diffie_Hellman
 {
     class Program
     {
-        static void Main(string[] args)
+        static void MainMenu()
         {
-            //sqrt of maxvalue is more than actual sqrt
-            //so square(sqrt(maxvalue)) > maxvalue == overflow
-            Console.WriteLine("Hello World!");
-            ulong ceiling =(ulong) Math.Floor(Math.Sqrt(ulong.MaxValue));
-            ulong notCeiling = (ceiling * ceiling) - 1;
-            ulong otherCeiling = (ulong) Math.Floor(Math.Sqrt(ceiling));
-            Console.WriteLine(Math.Sqrt(ulong.MaxValue));
-            Console.WriteLine(ceiling);
-            Console.WriteLine(notCeiling);
-            Console.WriteLine(otherCeiling);
+            var buff = "";
+            while (buff != "X")
+            {
+                Console.WriteLine("===============================");
+                Console.WriteLine("Please Select the encryption:");
+                Console.WriteLine("===============================");
+                Console.WriteLine("[C]aesar");
+                Console.WriteLine("[V]igenere");
+                Console.WriteLine("Or would you like to e[X]it?");
+                //Normalize the buffer
+                buff = Console.ReadLine();
+                buff = buff?.Trim().ToUpper();
+                //Start the menu over if the buffer options are not supported
+                if (buff == "X") continue;
+                if (buff != "C" && buff != "V")
+                {
+                    Console.WriteLine("Invalid option!");
+                    continue;
+                }
+
+                EncType type = buff == "C" ? EncType.Caesar : EncType.Vigenere;
+                buff = EncryptDecryptMenu(type) ? "" : "X";
+            }
+        }
+
+        static void Main()
+        {
+            MainMenu();
         }
     }
 }
