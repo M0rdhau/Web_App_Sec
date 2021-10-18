@@ -2,6 +2,7 @@ package utils
 
 import (
 	"unicode"
+	"unicode/utf8"
 )
 
 type StringType int
@@ -74,4 +75,21 @@ func DoCaesar(shiftable string, shiftint int32, strtype StringType) (string, int
 		CipherText += string(RotateCharacterValue(char, rune(shiftint), strtype))
 	}
 	return CipherText, shiftint
+}
+
+func DoVigenere(inputText string, keyString string, strtype StringType) string {
+	inputLength := utf8.RuneCountInString(inputText)
+	keyLength := utf8.RuneCountInString(keyString)
+	if inputLength != keyLength {
+		for keyLength < inputLength {
+			keyString += keyString
+		}
+	}
+	CipherText := ""
+	inputRunes := []rune(inputText)
+	keyRunes := []rune(keyString)
+	for i, _ := range inputRunes {
+		CipherText += string(RotateCharacterValue(inputRunes[i], keyRunes[i], strtype))
+	}
+	return CipherText
 }
