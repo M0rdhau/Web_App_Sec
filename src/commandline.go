@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	// "github.com/m0rdhau/Web_App_Sec/src/utils"
+
+	"github.com/m0rdhau/Web_App_Sec/src/utils"
 )
 
 func rotateRune(char rune, rotation uint32) {
@@ -13,10 +14,10 @@ func rotateRune(char rune, rotation uint32) {
 func main() {
 	something := -3
 	otherthing := something % 4
-	somestring := "a♛♛♛svasda"
+	somestring := "asdasdasd"
+	otherstring := "asd"
+	fmt.Println(utils.DoVigenere(somestring, otherstring, utils.PlainText))
 	fmt.Println(somestring[2:])
-	// strtype := utils.PlainText
-	// fmt.Println(strtype)
 	fmt.Println(otherthing)
 	fmt.Println('a')
 	rotateRune('a', 1)

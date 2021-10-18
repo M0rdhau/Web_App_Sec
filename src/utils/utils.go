@@ -15,14 +15,14 @@ const (
 
 const MaxUTF int32 = 0x10FFFF
 
+// Normalize the actual number we're going to shift with
+// In go, number field springs up from number 0 and flows outwards
+// Hence, modulo operator works weirdly.
+// Assume |A| > |B| and A > 0 and B < 0
+// Modulo operator, in B % A should return ||B| - |A||
+// But what it actually returns, is -||B|%|A||
+// Next line remedies that
 func NormalizeCharValue(charValue *int32, strtype StringType, isShift bool) {
-	// Normalize the actual number we're going to shift with
-	// In go, number field springs up from number 0 and flows outwards
-	// Hence, modulo operator works weirdly.
-	// Assume |A| > |B| and A > 0 and B < 0
-	// Modulo operator, in B % A should return ||B| - |A||
-	// But what it actually returns, is -||B|%|A||
-	// Next line remedies that
 	for *charValue < 0 {
 		*charValue = MaxUTF + *charValue
 	}
@@ -41,6 +41,8 @@ func NormalizeCharValue(charValue *int32, strtype StringType, isShift bool) {
 	}
 }
 
+// Rotate character value. If encrypting, add key value, otherwise subtract
+// the function also makes sure that the rune we return is not a control character
 func RotateCharacterValue(char rune, key rune, strtype StringType) rune {
 	charValue := int32(char)
 	keyValue := int32(key)
@@ -48,14 +50,13 @@ func RotateCharacterValue(char rune, key rune, strtype StringType) rune {
 	if strtype == KeyText {
 		panic("Illegal string type")
 	}
-	// Rotate character value. If encrypting, add key value, otherwise subtract
 	if strtype == CipherText {
 		charValue -= keyValue
 	} else {
 		charValue += keyValue
 	}
 	NormalizeCharValue(&charValue, strtype, false)
-	for !unicode.IsLetter(rune(charValue)) {
+	for unicode.IsControl(rune(charValue)) {
 		if strtype == CipherText {
 			charValue--
 		} else {
@@ -78,16 +79,17 @@ func DoCaesar(shiftable string, shiftint int32, strtype StringType) (string, int
 }
 
 func DoVigenere(inputText string, keyString string, strtype StringType) string {
-	inputLength := utf8.RuneCountInString(inputText)
-	keyLength := utf8.RuneCountInString(keyString)
-	if inputLength != keyLength {
-		for keyLength < inputLength {
+	// normalize the key so that it's the same size as input
+	// at first, make sure it's at least the same or bigger
+	if utf8.RuneCountInString(inputText) != utf8.RuneCountInString(keyString) {
+		for utf8.RuneCountInString(keyString) < utf8.RuneCountInString(inputText) {
 			keyString += keyString
 		}
 	}
 	CipherText := ""
 	inputRunes := []rune(inputText)
-	keyRunes := []rune(keyString)
+	// then cut it down to size
+	keyRunes := []rune(keyString)[0:len(inputRunes)]
 	for i, _ := range inputRunes {
 		CipherText += string(RotateCharacterValue(inputRunes[i], keyRunes[i], strtype))
 	}
