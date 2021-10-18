@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diffie-Hellman", "Diffie-He
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp\WebApp.csproj", "{E98D9AB8-F008-4178-8BC4-06779294FB99}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diffie-Hellman_Test", "Diffie-Hellman_Test\Diffie-Hellman_Test.csproj", "{A5AC81EB-1B67-42A6-808E-55B837ADF309}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{E98D9AB8-F008-4178-8BC4-06779294FB99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E98D9AB8-F008-4178-8BC4-06779294FB99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E98D9AB8-F008-4178-8BC4-06779294FB99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5AC81EB-1B67-42A6-808E-55B837ADF309}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5AC81EB-1B67-42A6-808E-55B837ADF309}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5AC81EB-1B67-42A6-808E-55B837ADF309}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5AC81EB-1B67-42A6-808E-55B837ADF309}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

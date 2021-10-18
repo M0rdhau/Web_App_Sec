@@ -1,6 +1,6 @@
 ﻿using System;
-using Diffie_Hellman.menus;
 using static Diffie_Hellman.menus.RotationMenu;
+using static Diffie_Hellman.utils.CryptoUtils;
 
 namespace Diffie_Hellman
 {
@@ -35,7 +35,7 @@ namespace Diffie_Hellman
 
         static void Main()
         {
-            MainMenu();
+            // MainMenu();
         }
     }
 }
