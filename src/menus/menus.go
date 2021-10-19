@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/m0rdhau/Web_App_Sec/src/utils"
+	"github.com/m0rdhau/Web_App_Sec/src/rotationutils"
 )
 
 type EncType int
@@ -17,14 +17,14 @@ const (
 	Caesar
 )
 
-func GetInputString(strtype utils.StringType) (string, error) {
+func GetInputString(strtype rotationutils.StringType) (string, error) {
 	var placeholder string
 	switch strtype {
-	case utils.CipherText:
+	case rotationutils.CipherText:
 		placeholder = "ciphertext"
-	case utils.PlainText:
+	case rotationutils.PlainText:
 		placeholder = "plaintext"
-	case utils.KeyText:
+	case rotationutils.KeyText:
 		placeholder = "keytext"
 	default:
 		panic("illegal StringType supplied")
@@ -39,7 +39,7 @@ func GetInputString(strtype utils.StringType) (string, error) {
 	return input, nil
 }
 
-func VigenereCaesarMenu(enctype EncType, strtype utils.StringType) {
+func VigenereCaesarMenu(enctype EncType, strtype rotationutils.StringType) {
 	continueLooping := true
 	reader := bufio.NewReader(os.Stdin)
 	for continueLooping {
@@ -50,7 +50,7 @@ func VigenereCaesarMenu(enctype EncType, strtype utils.StringType) {
 		} else {
 			encname = "Vigenere"
 		}
-		if strtype == utils.CipherText {
+		if strtype == rotationutils.CipherText {
 			encmethod = "Decrypt"
 		} else {
 			encmethod = "Encrypu"
@@ -80,16 +80,16 @@ func VigenereCaesarMenu(enctype EncType, strtype utils.StringType) {
 					continue
 				}
 				inputIsValid = true
-				result, shift := utils.DoCaesar(text, int32(shiftint), strtype)
+				result, shift := rotationutils.DoCaesar(text, int32(shiftint), strtype)
 				fmt.Println("Shift was:", shift)
 				resultString = result
 			}
 		} else {
-			keystring, err := GetInputString(utils.KeyText)
+			keystring, err := GetInputString(rotationutils.KeyText)
 			if err != nil || keystring == "" {
 				return
 			}
-			resultString = utils.DoVigenere(text, keystring, strtype)
+			resultString = rotationutils.DoVigenere(text, keystring, strtype)
 		}
 		fmt.Println("Result is:")
 		fmt.Println(resultString)
@@ -130,11 +130,11 @@ func EncryptDecryptMenu(enctype EncType) (bool, error) {
 			fmt.Println("Invalid Option")
 			continue
 		}
-		var strtype utils.StringType
+		var strtype rotationutils.StringType
 		if input == "E" {
-			strtype = utils.PlainText
+			strtype = rotationutils.PlainText
 		} else {
-			strtype = utils.CipherText
+			strtype = rotationutils.CipherText
 		}
 		VigenereCaesarMenu(enctype, strtype)
 	}
