@@ -53,7 +53,7 @@ func VigenereCaesarMenu(enctype EncType, strtype rotationutils.StringType) {
 		if strtype == rotationutils.CipherText {
 			encmethod = "Decrypt"
 		} else {
-			encmethod = "Encrypu"
+			encmethod = "Encrypt"
 		}
 		fmt.Println("===============================")
 		fmt.Println(encname, encmethod+"ion")
@@ -64,7 +64,7 @@ func VigenereCaesarMenu(enctype EncType, strtype rotationutils.StringType) {
 		}
 		var resultString string
 		if enctype == Caesar {
-			for inputIsValid := false; inputIsValid; {
+			for inputIsValid := false; !inputIsValid; {
 				fmt.Println("Please input the shift integer, or empty to return to previous menu")
 				shiftstring, err := reader.ReadString('\n')
 				if err != nil {
