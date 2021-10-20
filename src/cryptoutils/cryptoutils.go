@@ -1,7 +1,6 @@
 package cryptoutils
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 )
@@ -38,6 +37,69 @@ func ExtendedEuclid(e uint64, d uint64) uint64 {
 		cont = y[1] != 1
 	}
 	return y[1]
+}
+
+func FindPrimeFactors(n uint64) []uint64 {
+
+	factors := []uint64{}
+	if n%2 == 0 {
+		factors = append(factors, uint64(2))
+	}
+	for n%2 == 0 {
+		n /= 2
+	}
+
+	for i := uint64(3); i < uint64(math.Sqrt(float64(n))); i += 2 {
+		if n%i == 0 {
+			factors = append(factors, i)
+		}
+		for n%i == 0 {
+			n /= i
+		}
+	}
+
+	if n > 2 {
+		factors = append(factors, n)
+	}
+
+	return factors
+
+}
+
+// p - Prime number \n
+// g - primitive root modulo p \n
+// a - own secret number \n
+// function computes our secret string to send to the other party
+func DiffieHellmanOwn(p uint64, g uint64, a uint64) uint64 {
+	// g ^ 2 mod p
+	return Modpow(p, a, g)
+}
+
+// p - Prime number \n
+// a - own secret number \n
+// b - other party's computed secret number \n
+// function computes shared secret
+func DiffieHellmanOther(p uint64, a uint64, b uint64) uint64 {
+	// b ^ a mod p
+	return Modpow(p, a, b)
+}
+
+func FindPrimitive(n uint64) uint64 {
+	phi := n - 1
+	factors := FindPrimeFactors(phi)
+	for r := uint64(2); r <= phi; r++ {
+		isPrimitive := true
+		for j := 0; j < len(factors); j++ {
+			if Modpow(n, phi/factors[j], r) == 1 {
+				isPrimitive = false
+				break
+			}
+		}
+		if isPrimitive {
+			return r
+		}
+	}
+	return uint64(0)
 }
 
 // n is a possible prime
@@ -87,20 +149,17 @@ func GeneratePrime() uint64 {
 }
 
 func SingleTest(n uint64, d uint64, r uint64, channel chan bool) {
-	fmt.Println("loop")
 	//pick a random integer a in the range [2, n − 2]
 	// Just to make sure something weird doesn't happen
 	acounter := 0
 	a := uint64(0)
 	for a = rand.Uint64() % n; a <= 1 || a >= n-1; {
-		fmt.Println("looking for a")
 		a = rand.Uint64()
 		a = a % n
 		acounter++
 	}
 	// x := (a ^ d)%n
 	x := Modpow(n, d, a)
-	fmt.Println("modpow 1 done", x)
 	if x == 1 || x == n-1 {
 		channel <- true
 		return
@@ -126,7 +185,6 @@ func SingleTest(n uint64, d uint64, r uint64, channel chan bool) {
 func TestPrime(n uint64, k int) bool {
 	// write n as (2^r)·d + 1 with d odd (by factoring out powers of 2 from n − 1)
 	d, r := FactorPossiblePrime(n)
-	fmt.Println("factored", d, r)
 	channel := make(chan bool)
 	for i := 0; i < k; i++ {
 		go SingleTest(n, d, r, channel)
@@ -154,7 +212,23 @@ func TestPrimeSlow(possible uint64) bool {
 	return true
 }
 
+// Mod, Pow and number
+// number^pow%mod
 func Modpow(mod uint64, pow uint64, number uint64) uint64 {
+	var res uint64 = 1
+
+	number = number % mod
+	for pow > 0 {
+		if pow%2 == 1 {
+			res = (res * number) % mod
+		}
+		pow = pow >> 1
+		number = (number * number) % mod
+	}
+	return res
+}
+
+func ModpowOld(mod uint64, pow uint64, number uint64) uint64 {
 	if pow == 1 {
 		return number % mod
 	}
