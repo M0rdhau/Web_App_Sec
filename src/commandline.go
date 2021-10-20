@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"math/rand"
 	"os"
 	"strings"
@@ -16,16 +15,7 @@ import (
 func main() {
 	//set the seed once
 	rand.Seed(time.Now().UnixNano())
-	maxuint := uint64(math.Sqrt(float64(math.MaxUint64)))
-	p := rand.Uint64()
-	if p%2 == 0 {
-		p--
-	}
-	p %= maxuint
-	fmt.Println(cryptoutils.TestPrimeSlow(p))
-	cryptoutils.TestPrime(p, 1)
-
-	fmt.Println(cryptoutils.GeneratePrime())
+	fmt.Println(cryptoutils.GeneratePrimeFast())
 	return
 	buff := ""
 	reader := bufio.NewReader(os.Stdin)

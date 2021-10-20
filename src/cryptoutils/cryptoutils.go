@@ -52,6 +52,23 @@ func FactorPossiblePrime(n uint64) (uint64, uint64) {
 	return d, r
 }
 
+func GeneratePrimeFast() uint64 {
+	maxuint := uint64(math.Sqrt(float64(math.MaxUint64)))
+	p := rand.Uint64()
+	if p%2 == 0 {
+		p--
+	}
+	p %= maxuint
+	for !TestPrimeSlow(p) {
+		p = rand.Uint64()
+		if p%2 == 0 {
+			p--
+		}
+		p %= maxuint
+	}
+	return p
+}
+
 func GeneratePrime() uint64 {
 	maxuint := uint64(math.Sqrt(float64(math.MaxUint64)))
 	p := rand.Uint64()
@@ -59,9 +76,7 @@ func GeneratePrime() uint64 {
 		p--
 	}
 	p %= maxuint
-	fmt.Println("prime?")
 	for !TestPrime(p, 10) {
-		fmt.Println("not prime", p)
 		p = rand.Uint64()
 		if p%2 == 0 {
 			p--
@@ -124,6 +139,7 @@ func TestPrime(n uint64, k int) bool {
 	return true
 }
 
+// Not actually slow. Very fast
 func TestPrimeSlow(possible uint64) bool {
 	if possible%2 == 0 {
 		return false
