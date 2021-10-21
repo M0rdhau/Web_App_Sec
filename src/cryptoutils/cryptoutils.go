@@ -6,7 +6,12 @@ import (
 	"math/rand"
 )
 
-func ExtendedEuclid(e uint64, d uint64) uint64 {
+func ExtendedEuclidOld(e uint64, d uint64) uint64 {
+	if e > d {
+		temp := d
+		d = e
+		e = temp
+	}
 	x := [3]uint64{1, 0, d}
 	y := [3]uint64{0, 1, e}
 	t := [3]uint64{0, 0, 0}
@@ -38,29 +43,56 @@ func ExtendedEuclid(e uint64, d uint64) uint64 {
 	return y[1]
 }
 
-func GenerateE(one uint64, two uint64) uint64 {
-	lambda := ExtendedEuclid(one, two)
-	fmt.Println(one, two)
-	fmt.Println("lambda:", lambda)
-	e := rand.Uint64() % lambda
-	// for e < 3 || ExtendedEuclid(e, lambda) != 1 {
-	// 	fmt.Println("e is bad", e)
-	// 	if e > 3 {
-	// 		e--
-	// 	} else {
-	// 		e = lambda - 1
-	// 	}
-	// }
-	return e
+func ExtendedEuclid(a uint64, b uint64) uint64 {
+	r := [2]uint64{a, b}
+
+	for r[1] != 0 {
+		q := r[0] / r[1]
+		r = [2]uint64{r[1], r[0] - q*r[1]}
+	}
+	return r[0]
+}
+
+func InverseModulo(a int64, n int64) uint64 {
+	t := [2]int64{0, 1}
+	r := [2]int64{n, a}
+	for r[1] != 0 {
+		q := r[0] / r[1]
+		t = [2]int64{t[1], t[0] - q*t[1]}
+		r = [2]int64{r[1], r[0] - q*r[1]}
+	}
+
+	if r[0] > 1 {
+		return 0
+	}
+	if t[0] < 0 {
+		t[0] = t[0] + n
+	}
+
+	return uint64(t[0])
+
 }
 
 func GenerateRSA() {
-	p := GeneratePrime()
-	q := GeneratePrime()
-	n := p * q
-	m := (p - 1) * (q - 1)
-	fmt.Println(n, m)
-	fmt.Println(GenerateE(p-1, q-1))
+	var p uint64 = 0
+	var q uint64 = 0
+	var e uint64 = 0
+	var lambda uint64 = 0
+	for lambdaBigEnough := false; !lambdaBigEnough; {
+		p = GeneratePrime(false)
+		q = GeneratePrime(false)
+		// n := p * q
+		lambda = ExtendedEuclid(p-1, q-1)
+		lambdaBigEnough = lambda > 2
+	}
+
+	e = rand.Uint64() % lambda
+	for ExtendedEuclid(e, lambda) != 1 {
+		e = rand.Uint64() % lambda
+	}
+	d := InverseModulo(int64(e), int64(lambda))
+	fmt.Println(d)
+
 }
 
 func FindPrimeFactors(n uint64) []uint64 {
@@ -155,8 +187,13 @@ func GeneratePrimeFast() uint64 {
 	return p
 }
 
-func GeneratePrime() uint64 {
-	maxuint := uint64(math.Sqrt(float64(math.MaxUint64)))
+func GeneratePrime(forRSA bool) uint64 {
+	var maxuint uint64 = 0
+	if forRSA {
+		maxuint = uint64(math.Sqrt(math.Sqrt(float64(math.MaxUint64))))
+	} else {
+		maxuint = uint64(math.Sqrt(float64(math.MaxUint64)))
+	}
 	p := rand.Uint64()
 	if p%2 == 0 {
 		p--
