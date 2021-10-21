@@ -1,11 +1,10 @@
 package cryptoutils
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 )
-
-const GOROUTINE_NUM int = 1000
 
 func ExtendedEuclid(e uint64, d uint64) uint64 {
 	x := [3]uint64{1, 0, d}
@@ -34,9 +33,34 @@ func ExtendedEuclid(e uint64, d uint64) uint64 {
 		if y[2] == 0 {
 			return 0
 		}
-		cont = y[1] != 1
+		cont = y[2] != 1
 	}
 	return y[1]
+}
+
+func GenerateE(one uint64, two uint64) uint64 {
+	lambda := ExtendedEuclid(one, two)
+	fmt.Println(one, two)
+	fmt.Println("lambda:", lambda)
+	e := rand.Uint64() % lambda
+	// for e < 3 || ExtendedEuclid(e, lambda) != 1 {
+	// 	fmt.Println("e is bad", e)
+	// 	if e > 3 {
+	// 		e--
+	// 	} else {
+	// 		e = lambda - 1
+	// 	}
+	// }
+	return e
+}
+
+func GenerateRSA() {
+	p := GeneratePrime()
+	q := GeneratePrime()
+	n := p * q
+	m := (p - 1) * (q - 1)
+	fmt.Println(n, m)
+	fmt.Println(GenerateE(p-1, q-1))
 }
 
 func FindPrimeFactors(n uint64) []uint64 {
@@ -151,12 +175,10 @@ func GeneratePrime() uint64 {
 func SingleTest(n uint64, d uint64, r uint64, channel chan bool) {
 	//pick a random integer a in the range [2, n − 2]
 	// Just to make sure something weird doesn't happen
-	acounter := 0
 	a := uint64(0)
 	for a = rand.Uint64() % n; a <= 1 || a >= n-1; {
 		a = rand.Uint64()
 		a = a % n
-		acounter++
 	}
 	// x := (a ^ d)%n
 	x := Modpow(n, d, a)

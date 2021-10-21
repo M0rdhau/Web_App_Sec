@@ -15,6 +15,7 @@ import (
 func main() {
 	//set the seed once
 	rand.Seed(time.Now().UnixNano())
+	cryptoutils.GenerateRSA()
 	prime := cryptoutils.GeneratePrime()
 	primitive := cryptoutils.FindPrimitive(prime)
 	fmt.Println(prime, primitive)
