@@ -15,8 +15,11 @@ type EncType int
 const (
 	Vigenere EncType = iota
 	Caesar
+	RSA
+	DH
 )
 
+//utility submenu for geting a string
 func GetInputString(strtype rotationutils.StringType) (string, error) {
 	var placeholder string
 	switch strtype {
@@ -39,79 +42,67 @@ func GetInputString(strtype rotationutils.StringType) (string, error) {
 	return input, nil
 }
 
-func VigenereCaesarMenu(enctype EncType, strtype rotationutils.StringType) {
-	continueLooping := true
+//Main menu - the entry point
+func MainMenu() {
+	buff := ""
 	reader := bufio.NewReader(os.Stdin)
-	for continueLooping {
-		var encname string
-		var encmethod string
-		if enctype == Caesar {
-			encname = "Caesar"
-		} else {
-			encname = "Vigenere"
-		}
-		if strtype == rotationutils.CipherText {
-			encmethod = "Decrypt"
-		} else {
-			encmethod = "Encrypt"
-		}
+	for buff != "X" && buff != "B" {
 		fmt.Println("===============================")
-		fmt.Println(encname, encmethod+"ion")
+		fmt.Println("Please Select the encryption:")
 		fmt.Println("===============================")
-		text, _ := GetInputString(strtype)
-		if text == "" {
-			return
-		}
-		var resultString string
-		if enctype == Caesar {
-			for inputIsValid := false; !inputIsValid; {
-				fmt.Println("Please input the shift integer, or empty to return to previous menu")
-				shiftstring, err := reader.ReadString('\n')
-				if err != nil {
-					return
-				}
-				shiftstring = strings.TrimSpace(shiftstring)
-				if shiftstring == "" {
-					return
-				}
-				shiftint, err := strconv.ParseInt(shiftstring, 10, 32)
-				if err != nil {
-					fmt.Println("Not a valid shift!")
-					continue
-				}
-				inputIsValid = true
-				result, shift := rotationutils.DoCaesar(text, int32(shiftint), strtype)
-				fmt.Println("Shift was:", shift)
-				resultString = result
-			}
-		} else {
-			keystring, err := GetInputString(rotationutils.KeyText)
-			if err != nil || keystring == "" {
-				return
-			}
-			resultString = rotationutils.DoVigenere(text, keystring, strtype)
-		}
-		fmt.Println("Result is:")
-		fmt.Println(resultString)
-		fmt.Println("Would you like to", encmethod, "with", encname, "again?")
-		fmt.Println("[Y]es? Otherwise press any button.")
+		fmt.Println("[C]aesar")
+		fmt.Println("[V]igenere")
+		fmt.Println("[R]SA")
+		fmt.Println("[D]iffie Hellman")
+		fmt.Println("Go [B]ack to previous menu")
+		fmt.Println("Or would you like to e[X]it?")
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			return
+			fmt.Println("Something went wrong")
+			continue
 		}
-		input = strings.ToUpper(strings.TrimSpace(input))
-		continueLooping = input == "Y"
+		// If user wants to exit, do so
+		buff = strings.ToUpper(strings.TrimSpace(input))
+		if buff == "X" || buff == "B" {
+			continue
+		}
+		// Handle invalid responses
+		if buff != "C" && buff != "V" && buff != "R" && buff != "D" {
+			fmt.Println("")
+			fmt.Println("Unsupported Option, please choose again")
+			fmt.Println("")
+			continue
+		}
+		var enctype EncType
+		if buff == "C" {
+			enctype = Caesar
+		} else {
+			enctype = Vigenere
+		}
+		control, _ := ChooseEncryptMenu(enctype)
+		// Terminate the loop or not based on the above menu
+		if control {
+			buff = ""
+		} else {
+			buff = "X"
+		}
 	}
 }
 
-func EncryptDecryptMenu(enctype EncType) (bool, error) {
+// Intermediary menu, title is self explanatory
+func ChooseEncryptMenu(enctype EncType) (bool, error) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Println("===============================")
-		if enctype == Vigenere {
+		switch enctype {
+		case Vigenere:
 			fmt.Println("Vigenere")
-		} else {
+		case Caesar:
 			fmt.Println("Caesar")
+		case RSA:
+			fmt.Println("RSA")
+		case DH:
+			fmt.Println("Diffie Hellman")
 		}
 		fmt.Println("===============================")
 		fmt.Println("Would you like to [E]ncrypt or [D]ecrypt a string?")
@@ -122,6 +113,7 @@ func EncryptDecryptMenu(enctype EncType) (bool, error) {
 			return false, err
 		}
 		input = strings.ToUpper(strings.TrimSpace(input))
+		// Handle input
 		if input == "B" {
 			return true, nil
 		} else if input == "X" {
@@ -136,6 +128,90 @@ func EncryptDecryptMenu(enctype EncType) (bool, error) {
 		} else {
 			strtype = rotationutils.CipherText
 		}
-		VigenereCaesarMenu(enctype, strtype)
+		EncryptDecryptMenu(enctype, strtype)
 	}
+}
+
+func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
+	continueLooping := true
+	reader := bufio.NewReader(os.Stdin)
+	for continueLooping {
+		var encname string
+		var encmethod string
+		switch enctype {
+		case Vigenere:
+			encname = "Vigenere"
+		case Caesar:
+			encname = "Caesar"
+		case RSA:
+			encname = "RSA"
+		case DH:
+			encname = "Diffie Hellman"
+		}
+		if strtype == rotationutils.CipherText {
+			encmethod = "Decrypt"
+		} else {
+			encmethod = "Encrypt"
+		}
+		fmt.Println("===============================")
+		fmt.Println(encname, encmethod+"ion")
+		fmt.Println("===============================")
+		text, _ := GetInputString(strtype)
+		if text == "" {
+			return
+		}
+		var resultString string
+		switch enctype {
+		case Vigenere:
+			keystring, err := GetInputString(rotationutils.KeyText)
+			if err != nil || keystring == "" {
+				return
+			}
+			resultString = rotationutils.DoVigenere(text, keystring, strtype)
+		case Caesar:
+			resultString = CaesarMenu(text, enctype, strtype)
+			if resultString == "" {
+				return
+			}
+		case RSA:
+			fmt.Println("RSA")
+		case DH:
+			fmt.Println("DH")
+		}
+		fmt.Println("Result is:")
+		fmt.Println(resultString)
+		fmt.Println("Would you like to", encmethod, "with", encname, "again?")
+		fmt.Println("[Y]es? Otherwise press any button.")
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return
+		}
+		input = strings.ToUpper(strings.TrimSpace(input))
+		continueLooping = input == "Y"
+	}
+}
+
+func CaesarMenu(text string, enctype EncType, strtype rotationutils.StringType) string {
+	for inputIsValid := false; !inputIsValid; {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Println("Please input the shift integer, or empty to return to previous menu")
+		shiftstring, err := reader.ReadString('\n')
+		if err != nil {
+			return ""
+		}
+		shiftstring = strings.TrimSpace(shiftstring)
+		if shiftstring == "" {
+			return ""
+		}
+		shiftint, err := strconv.ParseInt(shiftstring, 10, 32)
+		if err != nil {
+			fmt.Println("Not a valid shift!")
+			continue
+		}
+		inputIsValid = true
+		result, shift := rotationutils.DoCaesar(text, int32(shiftint), strtype)
+		fmt.Println("Shift was:", shift)
+		return result
+	}
+	return ""
 }
