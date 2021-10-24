@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/m0rdhau/Web_App_Sec/src/cryptoutils"
 	"github.com/m0rdhau/Web_App_Sec/src/rotationutils"
 )
 
@@ -18,6 +19,29 @@ const (
 	RSA
 	DH
 )
+
+//Utility function to get an integer
+func GetIntegerInput(displaystring string) (int64, bool) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println(displaystring)
+	for {
+		shiftstring, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Not a valid shift!")
+			continue
+		}
+		shiftstring = strings.TrimSpace(shiftstring)
+		if shiftstring == "" {
+			return 0, false
+		}
+		shiftint, err := strconv.ParseInt(shiftstring, 10, 32)
+		if err != nil {
+			fmt.Println("Not a valid shift!")
+			continue
+		}
+		return int64(shiftint), true
+	}
+}
 
 //utility submenu for geting a string
 func GetInputString(strtype rotationutils.StringType) (string, error) {
@@ -74,10 +98,15 @@ func MainMenu() {
 			continue
 		}
 		var enctype EncType
-		if buff == "C" {
+		switch buff {
+		case "C":
 			enctype = Caesar
-		} else {
+		case "V":
 			enctype = Vigenere
+		case "R":
+			enctype = RSA
+		case "D":
+			enctype = DH
 		}
 		control, _ := ChooseEncryptMenu(enctype)
 		// Terminate the loop or not based on the above menu
@@ -191,27 +220,35 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 	}
 }
 
-func CaesarMenu(text string, enctype EncType, strtype rotationutils.StringType) string {
-	for inputIsValid := false; !inputIsValid; {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Println("Please input the shift integer, or empty to return to previous menu")
-		shiftstring, err := reader.ReadString('\n')
-		if err != nil {
-			return ""
+func DiffieHellmanMenu() {
+	for continueLooping := true; continueLooping; {
+		prime := uint64(0)
+		primitive := uint64(0)
+		smallprime, ok := GetIntegerInput("Enter the prime number, or leave blank to auto-generate")
+		if !ok {
+			prime = cryptoutils.GeneratePrime(false)
+			primitive = cryptoutils.FindPrimitive(prime)
+		} else {
+			prime = uint64(smallprime)
+			isprime := cryptoutils.TestPrime(prime, 50)
+			if !isprime {
+				fmt.Println("Not a prime number!")
+				continue
+			}
 		}
-		shiftstring = strings.TrimSpace(shiftstring)
-		if shiftstring == "" {
-			return ""
-		}
-		shiftint, err := strconv.ParseInt(shiftstring, 10, 32)
-		if err != nil {
-			fmt.Println("Not a valid shift!")
-			continue
-		}
-		inputIsValid = true
-		result, shift := rotationutils.DoCaesar(text, int32(shiftint), strtype)
-		fmt.Println("Shift was:", shift)
-		return result
+
+		fmt.Println("Prime number p:", prime)
+		fmt.Println("Primitive (Base) number g:", primitive)
 	}
-	return ""
+}
+
+func CaesarMenu(text string, enctype EncType, strtype rotationutils.StringType) string {
+	displaystring := "Please input the shift integer, or empty to return to previous menu"
+	shiftint, ok := GetIntegerInput(displaystring)
+	if !ok {
+		return ""
+	}
+	result, shift := rotationutils.DoCaesar(text, int32(shiftint), strtype)
+	fmt.Println("Shift was:", shift)
+	return result
 }

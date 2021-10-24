@@ -1,48 +1,14 @@
 package cryptoutils
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 )
 
-func ExtendedEuclidOld(e uint64, d uint64) uint64 {
-	if e > d {
-		temp := d
-		d = e
-		e = temp
-	}
-	x := [3]uint64{1, 0, d}
-	y := [3]uint64{0, 1, e}
-	t := [3]uint64{0, 0, 0}
-	i := 1
-	cont := true
-	for cont {
-		q := uint64(0)
-		if i == 1 {
-			q = x[2] / y[2]
-			for j := 0; j < 3; j++ {
-				t[j] = x[j] - (q * y[j])
-			}
-		} else {
-			for j := 0; j < 3; j++ {
-				x[j] = y[j]
-				y[j] = t[j]
-			}
-			q = x[2] / y[2]
-			for j := 0; j < 3; j++ {
-				t[j] = x[j] - (q * y[j])
-			}
-		}
-		i++
-		if y[2] == 0 {
-			return 0
-		}
-		cont = y[2] != 1
-	}
-	return y[1]
-}
-
+// Next two functions are Extended Euclidean formulas
+// for finding GCD-s. They are not the same function due to
+// signatures. uint64 cannot become negative, but we need to support
+// that operation in InverseModulo function
 func ExtendedEuclid(a uint64, b uint64) uint64 {
 	r := [2]uint64{a, b}
 
@@ -73,7 +39,7 @@ func InverseModulo(a int64, n int64) uint64 {
 
 }
 
-func GenerateRSA() {
+func GenerateRSA() (uint64, uint64, uint64) {
 	var p uint64 = 0
 	var q uint64 = 0
 	var e uint64 = 0
@@ -91,8 +57,7 @@ func GenerateRSA() {
 		e = rand.Uint64() % lambda
 	}
 	d := InverseModulo(int64(e), int64(lambda))
-	fmt.Println(d)
-
+	return p * q, e, d
 }
 
 func FindPrimeFactors(n uint64) []uint64 {
