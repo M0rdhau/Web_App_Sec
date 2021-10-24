@@ -105,6 +105,24 @@ func DiffieHellmanOther(p uint64, a uint64, b uint64) uint64 {
 	return Modpow(p, a, b)
 }
 
+func CheckPrimitive(n uint64, p uint64) bool {
+	phi := n - 1
+	factors := FindPrimeFactors(phi)
+	for r := uint64(2); r <= phi; r++ {
+		isPrimitive := true
+		for j := 0; j < len(factors); j++ {
+			if Modpow(n, phi/factors[j], r) == 1 {
+				isPrimitive = false
+				break
+			}
+		}
+		if isPrimitive && p == r {
+			return true
+		}
+	}
+	return false
+}
+
 func FindPrimitive(n uint64) uint64 {
 	phi := n - 1
 	factors := FindPrimeFactors(phi)

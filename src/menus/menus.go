@@ -220,22 +220,42 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 	}
 }
 
-func DiffieHellmanMenu() {
-	for continueLooping := true; continueLooping; {
-		prime := uint64(0)
-		primitive := uint64(0)
+func GetPrimeNumberInput() uint64 {
+	for {
 		smallprime, ok := GetIntegerInput("Enter the prime number, or leave blank to auto-generate")
 		if !ok {
-			prime = cryptoutils.GeneratePrime(false)
-			primitive = cryptoutils.FindPrimitive(prime)
+			return cryptoutils.GeneratePrime(false)
+		}
+		prime := uint64(smallprime)
+		isprime := cryptoutils.TestPrime(prime, 50)
+		if !isprime {
+			fmt.Println("Not a prime number!")
+			continue
+		}
+		return prime
+	}
+}
+
+func GetPrimitiveNumberInput(n uint64) uint64 {
+	for {
+		smallprimitive, ok := GetIntegerInput("Enter the primitive/base for your prime, or leave blank to auto-generate")
+		if !ok {
+			return cryptoutils.FindPrimitive(n)
 		} else {
-			prime = uint64(smallprime)
-			isprime := cryptoutils.TestPrime(prime, 50)
-			if !isprime {
-				fmt.Println("Not a prime number!")
+			if !cryptoutils.CheckPrimitive(n, uint64(smallprimitive)) {
+				fmt.Println("Not a primitive for", n, "Please try again")
 				continue
+			} else {
+				return uint64(smallprimitive)
 			}
 		}
+	}
+}
+
+func DiffieHellmanMenu() {
+	for continueLooping := true; continueLooping; {
+		prime := GetPrimeNumberInput()
+		primitive := GetPrimitiveNumberInput(prime)
 
 		fmt.Println("Prime number p:", prime)
 		fmt.Println("Primitive (Base) number g:", primitive)
