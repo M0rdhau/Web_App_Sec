@@ -20,6 +20,39 @@ const (
 	DH
 )
 
+// Utility function to get a prime number
+func GetPrimeNumberInput() uint64 {
+	for {
+		smallprime, ok := GetIntegerInput("Enter the prime number, or leave blank to auto-generate")
+		if !ok {
+			return cryptoutils.GeneratePrime(false)
+		}
+		prime := uint64(smallprime)
+		if !cryptoutils.TestPrime(prime, 50) {
+			fmt.Println("Not a prime number!")
+			continue
+		}
+		return prime
+	}
+}
+
+// Utility function to get a primitive of a prime
+func GetPrimitiveNumberInput(n uint64) uint64 {
+	for {
+		smallprimitive, ok := GetIntegerInput("Enter the primitive/base for your prime, or leave blank to auto-generate")
+		if !ok {
+			return cryptoutils.FindPrimitive(n)
+		} else {
+			if !cryptoutils.CheckPrimitive(n, uint64(smallprimitive)) {
+				fmt.Println("Not a primitive for", n, "Please try again")
+				continue
+			} else {
+				return uint64(smallprimitive)
+			}
+		}
+	}
+}
+
 //Utility function to get an integer
 func GetIntegerInput(displaystring string) (int64, bool) {
 	reader := bufio.NewReader(os.Stdin)
@@ -217,38 +250,6 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 		}
 		input = strings.ToUpper(strings.TrimSpace(input))
 		continueLooping = input == "Y"
-	}
-}
-
-func GetPrimeNumberInput() uint64 {
-	for {
-		smallprime, ok := GetIntegerInput("Enter the prime number, or leave blank to auto-generate")
-		if !ok {
-			return cryptoutils.GeneratePrime(false)
-		}
-		prime := uint64(smallprime)
-		isprime := cryptoutils.TestPrime(prime, 50)
-		if !isprime {
-			fmt.Println("Not a prime number!")
-			continue
-		}
-		return prime
-	}
-}
-
-func GetPrimitiveNumberInput(n uint64) uint64 {
-	for {
-		smallprimitive, ok := GetIntegerInput("Enter the primitive/base for your prime, or leave blank to auto-generate")
-		if !ok {
-			return cryptoutils.FindPrimitive(n)
-		} else {
-			if !cryptoutils.CheckPrimitive(n, uint64(smallprimitive)) {
-				fmt.Println("Not a primitive for", n, "Please try again")
-				continue
-			} else {
-				return uint64(smallprimitive)
-			}
-		}
 	}
 }
 
