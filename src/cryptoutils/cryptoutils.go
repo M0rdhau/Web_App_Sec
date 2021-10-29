@@ -87,24 +87,6 @@ func FindPrimeFactors(n uint64) []uint64 {
 
 }
 
-// p - Prime number \n
-// g - primitive root modulo p \n
-// a - own secret number \n
-// function computes our secret string to send to the other party
-func DiffieHellmanOwn(p uint64, g uint64, a uint64) uint64 {
-	// g ^ 2 mod p
-	return Modpow(p, a, g)
-}
-
-// p - Prime number \n
-// a - own secret number \n
-// b - other party's computed secret number \n
-// function computes shared secret
-func DiffieHellmanOther(p uint64, a uint64, b uint64) uint64 {
-	// b ^ a mod p
-	return Modpow(p, a, b)
-}
-
 func CheckPrimitive(n uint64, p uint64) bool {
 	phi := n - 1
 	factors := FindPrimeFactors(phi)

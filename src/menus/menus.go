@@ -2,7 +2,10 @@ package menus
 
 import (
 	"bufio"
+	"encoding/binary"
 	"fmt"
+	"math"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -97,6 +100,25 @@ func GetInputString(strtype rotationutils.StringType) (string, error) {
 		return "", err
 	}
 	return input, nil
+}
+
+// Brings up a menu that will let the user choose their secret.
+// It will also check if their encryption is valid (by checking the shared secret)
+func GetDiffieHellmanSecret(encrypted uint64, secret uint64, prime uint64, primitive uint64) uint64 {
+	for {
+		theirsecret, ok := GetIntegerInput("Please input your your unencrypted secret, or leave blank auto-generate it")
+		if !ok {
+			theirsecret = int64(rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64))))
+		}
+		theirencrypted := cryptoutils.Modpow(prime, uint64(theirsecret), primitive)
+		sharedOur := cryptoutils.Modpow(prime, secret, uint64(theirencrypted))
+		sharedTheir := cryptoutils.Modpow(prime, uint64(theirsecret), encrypted)
+		if sharedOur != sharedTheir {
+			fmt.Println("something's wrong")
+		}
+
+		return uint64(theirsecret)
+	}
 }
 
 //Main menu - the entry point
@@ -238,7 +260,7 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 		case RSA:
 			fmt.Println("RSA")
 		case DH:
-			fmt.Println("DH")
+			resultString = DiffieHellmanMenu(text)
 		}
 		fmt.Println("Result is:")
 		fmt.Println(resultString)
@@ -253,14 +275,34 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 	}
 }
 
-func DiffieHellmanMenu() {
-	for continueLooping := true; continueLooping; {
-		prime := GetPrimeNumberInput()
-		primitive := GetPrimitiveNumberInput(prime)
+// Menu for DH key exchange. What we'll get from this menu in the end will be the shared secret.
+// We let the user decide if they want to let the program generate everything
+// Or if they want to input all the details by themselves
+func DiffieHellmanMenu(plaintext string) string {
+	var sharedSecret uint64
 
-		fmt.Println("Prime number p:", prime)
-		fmt.Println("Primitive (Base) number g:", primitive)
-	}
+	// Ask user to input a prime, Otherwise known as p
+	// Or generate one automatically
+	prime := GetPrimeNumberInput()
+	// Ask the user to input primitive of the prime, Otherwise known as g,
+	// Or generate one automatically
+	primitive := GetPrimitiveNumberInput(prime)
+	// Generate our secret number that we will then encrypt
+	ourSecretnNumber := rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64)))
+	ourEncryptedNumber := cryptoutils.Modpow(prime, ourSecretnNumber, primitive)
+	// Get the user's secret number, otherwise known as a
+	sharedSecret = GetDiffieHellmanSecret(ourEncryptedNumber, ourSecretnNumber, prime, primitive)
+	fmt.Println(ourEncryptedNumber)
+	fmt.Println(sharedSecret)
+	fmt.Println("Prime number p:", prime)
+	fmt.Println("Primitive (Base) number g:", primitive)
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, sharedSecret)
+	fmt.Println(b)
+	i := int64(binary.LittleEndian.Uint64(b))
+	fmt.Println(i)
+	fmt.Println(sharedSecret)
+	return plaintext
 }
 
 func CaesarMenu(text string, enctype EncType, strtype rotationutils.StringType) string {
