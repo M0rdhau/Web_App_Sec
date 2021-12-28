@@ -275,6 +275,8 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 	}
 }
 
+//TODO: RSA menu
+
 // Menu for DH key exchange. What we'll get from this menu in the end will be the shared secret.
 // We let the user decide if they want to let the program generate everything
 // Or if they want to input all the details by themselves

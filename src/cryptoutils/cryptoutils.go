@@ -5,10 +5,11 @@ import (
 	"math/rand"
 )
 
-// Next two functions are Extended Euclidean formulas
-// for finding GCD-s. They are not the same function due to
-// signatures. uint64 cannot become negative, but we need to support
-// that operation in InverseModulo function
+// This and InverseModulo are Extended Euclidean formulas
+// for finding GCD-s. They do the exact same thing, yet They are not the same
+// function due to signatures.
+// uint64 cannot become negative,
+// thus it canot be used in InverseModulo function
 func ExtendedEuclid(a uint64, b uint64) uint64 {
 	r := [2]uint64{a, b}
 
@@ -19,6 +20,11 @@ func ExtendedEuclid(a uint64, b uint64) uint64 {
 	return r[0]
 }
 
+// This and ExtendedEuclid are Extended Euclidean formulas
+// for finding GCD-s. They do the exact same thing, yet They are not the same
+// function due to signatures.
+// uint64 cannot become negative,
+// thus it canot be used in InverseModulo function
 func InverseModulo(a int64, n int64) uint64 {
 	t := [2]int64{0, 1}
 	r := [2]int64{n, a}
