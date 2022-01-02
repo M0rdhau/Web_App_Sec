@@ -45,6 +45,9 @@ func InverseModulo(a int64, n int64) uint64 {
 
 }
 
+// returns n, e, d
+// pubkey - n + e
+// privkey - d
 func GenerateRSA() (uint64, uint64, uint64) {
 	var p uint64 = 0
 	var q uint64 = 0
@@ -94,6 +97,9 @@ func FindPrimeFactors(n uint64) []uint64 {
 }
 
 func CheckPrimitive(n uint64, p uint64) bool {
+	if p > n {
+		return false
+	}
 	phi := n - 1
 	factors := FindPrimeFactors(phi)
 	for r := uint64(2); r <= phi; r++ {

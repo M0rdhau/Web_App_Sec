@@ -2,7 +2,6 @@ package menus
 
 import (
 	"bufio"
-	"encoding/binary"
 	"fmt"
 	"math"
 	"math/rand"
@@ -50,6 +49,7 @@ func GetPrimitiveNumberInput(n uint64) uint64 {
 				fmt.Println("Not a primitive for", n, "Please try again")
 				continue
 			} else {
+				fmt.Println("It's a primitive")
 				return uint64(smallprimitive)
 			}
 		}
@@ -104,7 +104,7 @@ func GetInputString(strtype rotationutils.StringType) (string, error) {
 
 // Brings up a menu that will let the user choose their secret.
 // It will also check if their encryption is valid (by checking the shared secret)
-func GetDiffieHellmanSecret(encrypted uint64, secret uint64, prime uint64, primitive uint64) uint64 {
+func GetDiffieHellmanSecret(partial uint64, secret uint64, prime uint64, primitive uint64) (uint64, uint64, uint64) {
 	for {
 		theirsecret, ok := GetIntegerInput("Please input your your unencrypted secret, or leave blank auto-generate it")
 		if !ok {
@@ -112,12 +112,13 @@ func GetDiffieHellmanSecret(encrypted uint64, secret uint64, prime uint64, primi
 		}
 		theirencrypted := cryptoutils.Modpow(prime, uint64(theirsecret), primitive)
 		sharedOur := cryptoutils.Modpow(prime, secret, uint64(theirencrypted))
-		sharedTheir := cryptoutils.Modpow(prime, uint64(theirsecret), encrypted)
+		sharedTheir := cryptoutils.Modpow(prime, uint64(theirsecret), partial)
 		if sharedOur != sharedTheir {
 			fmt.Println("something's wrong")
+			continue
 		}
 
-		return uint64(theirsecret)
+		return uint64(theirsecret), theirencrypted, sharedOur
 	}
 }
 
@@ -133,7 +134,6 @@ func MainMenu() {
 		fmt.Println("[V]igenere")
 		fmt.Println("[R]SA")
 		fmt.Println("[D]iffie Hellman")
-		fmt.Println("Go [B]ack to previous menu")
 		fmt.Println("Or would you like to e[X]it?")
 		input, err := reader.ReadString('\n')
 		if err != nil {
@@ -189,7 +189,11 @@ func ChooseEncryptMenu(enctype EncType) (bool, error) {
 			fmt.Println("Diffie Hellman")
 		}
 		fmt.Println("===============================")
-		fmt.Println("Would you like to [E]ncrypt or [D]ecrypt a string?")
+		if enctype == DH {
+			fmt.Println("Press any key to proceed")
+		} else {
+			fmt.Println("Would you like to [E]ncrypt or [D]ecrypt a string?")
+		}
 		fmt.Println("Or would you like to go [B]ack to the previous menu?")
 		fmt.Println("Or would you like to e[X]it the program?")
 		input, err := reader.ReadString('\n')
@@ -202,7 +206,7 @@ func ChooseEncryptMenu(enctype EncType) (bool, error) {
 			return true, nil
 		} else if input == "X" {
 			return false, nil
-		} else if input != "E" && input != "D" {
+		} else if input != "E" && input != "D" && enctype != DH {
 			fmt.Println("Invalid Option")
 			continue
 		}
@@ -240,8 +244,11 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 		fmt.Println("===============================")
 		fmt.Println(encname, encmethod+"ion")
 		fmt.Println("===============================")
-		text, _ := GetInputString(strtype)
-		if text == "" {
+		text := ""
+		if enctype != DH {
+			text, _ = GetInputString(strtype)
+		}
+		if text == "" && enctype != DH {
 			return
 		}
 		var resultString string
@@ -262,8 +269,10 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 		case DH:
 			resultString = DiffieHellmanMenu(text)
 		}
-		fmt.Println("Result is:")
-		fmt.Println(resultString)
+		if enctype != DH {
+			fmt.Println("Result is:")
+			fmt.Println(resultString)
+		}
 		fmt.Println("Would you like to", encmethod, "with", encname, "again?")
 		fmt.Println("[Y]es? Otherwise press any button.")
 		input, err := reader.ReadString('\n')
@@ -283,27 +292,28 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 func DiffieHellmanMenu(plaintext string) string {
 	var sharedSecret uint64
 
-	// Ask user to input a prime, Otherwise known as p
+	// Ask user to input a prime, Otherwise known as 'p'
 	// Or generate one automatically
+	fmt.Println("First let's agree on public numbers p and g (prime and primitive)")
 	prime := GetPrimeNumberInput()
-	// Ask the user to input primitive of the prime, Otherwise known as g,
+	// Ask the user to input primitive of the prime, Otherwise known as 'g',
 	// Or generate one automatically
 	primitive := GetPrimitiveNumberInput(prime)
-	// Generate our secret number that we will then encrypt
-	ourSecretnNumber := rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64)))
-	ourEncryptedNumber := cryptoutils.Modpow(prime, ourSecretnNumber, primitive)
-	// Get the user's secret number, otherwise known as a
-	sharedSecret = GetDiffieHellmanSecret(ourEncryptedNumber, ourSecretnNumber, prime, primitive)
-	fmt.Println(ourEncryptedNumber)
-	fmt.Println(sharedSecret)
+	// Generate our number that we'll (in theory) keep secret
+	// Used for generating our part of the shared secret
+	ourSecret := rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64)))
+	//our part of the shared secret that will go through an insecure medium
+	ourPartial := cryptoutils.Modpow(prime, ourSecret, primitive)
+	// This will gather user's secret number and generate their part of the shared secret
+	// as well as generating THE shared secret
+	theirSecret, theirPartial, sharedSecret := GetDiffieHellmanSecret(ourPartial, ourSecret, prime, primitive)
 	fmt.Println("Prime number p:", prime)
 	fmt.Println("Primitive (Base) number g:", primitive)
-	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, sharedSecret)
-	fmt.Println(b)
-	i := int64(binary.LittleEndian.Uint64(b))
-	fmt.Println(i)
-	fmt.Println(sharedSecret)
+	fmt.Println("Our secret number (the one we shouldn't tell anybody):", ourSecret)
+	fmt.Println("Your secret number (the one we shouldn't tell anybody):", theirSecret)
+	fmt.Println("Our part of the shared secret:", ourPartial)
+	fmt.Println("Your part of the shared secret:", theirPartial)
+	fmt.Println("The final shared secret:", sharedSecret)
 	return plaintext
 }
 

@@ -21,7 +21,7 @@ const MaxUTF int32 = 0x10FFFF
 // Assume |A| > |B| and A > 0 and B < 0
 // Modulo operator, in B % A should return ||B| - |A||
 // But what it actually returns, is -||B|%|A||
-// Next line remedies that
+// This function remedies that
 func NormalizeCharValue(charValue *int32, strtype StringType, isShift bool) {
 	for *charValue < 0 {
 		*charValue = MaxUTF + *charValue
@@ -90,7 +90,7 @@ func DoVigenere(inputText string, keyString string, strtype StringType) string {
 	inputRunes := []rune(inputText)
 	// then cut it down to size
 	keyRunes := []rune(keyString)[0:len(inputRunes)]
-	for i, _ := range inputRunes {
+	for i := range inputRunes {
 		CipherText += string(RotateCharacterValue(inputRunes[i], keyRunes[i], strtype))
 	}
 	return CipherText
