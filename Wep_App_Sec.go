@@ -10,6 +10,10 @@ import (
 func main() {
 	//set the seed once
 	rand.Seed(time.Now().UnixNano())
+	// n, e, d := cryptoutils.GenerateRSA()
+	// fmt.Println("n: ", n)
+	// fmt.Println("e: ", e)
+	// fmt.Println("d: ", d)
 	// cryptoutils.GenerateRSA()
 	// prime := cryptoutils.GeneratePrime(false)
 	// primitive := cryptoutils.FindPrimitive(prime)

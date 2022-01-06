@@ -3,6 +3,8 @@ package cryptoutils
 import (
 	"math"
 	"math/rand"
+
+	"github.com/m0rdhau/Web_App_Sec/src/utils"
 )
 
 // This and InverseModulo are Extended Euclidean formulas
@@ -45,6 +47,30 @@ func InverseModulo(a int64, n int64) uint64 {
 
 }
 
+func GenerateLambda(p uint64, q uint64) uint64 {
+	var lambda uint64 = 0
+	for lambdaBigEnough := false; !lambdaBigEnough; {
+		p = GeneratePrime(false)
+		q = GeneratePrime(false)
+		// n := p * q
+		lambda = (p * q) / ExtendedEuclid(p-1, q-1)
+		lambdaBigEnough = lambda > 2
+	}
+	return lambda
+}
+
+func GenerateEs(lambda uint64, amt int) []uint64 {
+	var Es = make([]uint64, amt)
+	for i := 0; i < amt; i++ {
+		e := rand.Uint64() % lambda
+		for sliceContains, _ := utils.SliceContains(e, Es); ExtendedEuclid(e, lambda) != 1 || !sliceContains; {
+			e = rand.Uint64() % lambda
+		}
+		Es[i] = e
+	}
+	return Es
+}
+
 // returns n, e, d
 // pubkey - n + e
 // privkey - d
@@ -52,15 +78,7 @@ func GenerateRSA() (uint64, uint64, uint64) {
 	var p uint64 = 0
 	var q uint64 = 0
 	var e uint64 = 0
-	var lambda uint64 = 0
-	for lambdaBigEnough := false; !lambdaBigEnough; {
-		p = GeneratePrime(false)
-		q = GeneratePrime(false)
-		// n := p * q
-		lambda = ExtendedEuclid(p-1, q-1)
-		lambdaBigEnough = lambda > 2
-	}
-
+	lambda := GenerateLambda(p, q)
 	e = rand.Uint64() % lambda
 	for ExtendedEuclid(e, lambda) != 1 {
 		e = rand.Uint64() % lambda

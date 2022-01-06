@@ -13,6 +13,8 @@ import (
 	"github.com/m0rdhau/Web_App_Sec/src/rotationutils"
 )
 
+const NUM_POSSIBLE_ES = 10
+
 type EncType int
 
 const (
@@ -265,7 +267,7 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 				return
 			}
 		case RSA:
-			fmt.Println("RSA")
+			resultString = RSAMenu(text)
 		case DH:
 			resultString = DiffieHellmanMenu(text)
 		}
@@ -284,8 +286,6 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 	}
 }
 
-//TODO: RSA menu
-
 // Menu for DH key exchange. What we'll get from this menu in the end will be the shared secret.
 // We let the user decide if they want to let the program generate everything
 // Or if they want to input all the details by themselves
@@ -294,6 +294,9 @@ func DiffieHellmanMenu(plaintext string) string {
 
 	// Ask user to input a prime, Otherwise known as 'p'
 	// Or generate one automatically
+	fmt.Println("===============================")
+	fmt.Println("Diffie-Hellmann key generation")
+	fmt.Println("===============================")
 	fmt.Println("First let's agree on public numbers p and g (prime and primitive)")
 	prime := GetPrimeNumberInput()
 	// Ask the user to input primitive of the prime, Otherwise known as 'g',
@@ -315,6 +318,25 @@ func DiffieHellmanMenu(plaintext string) string {
 	fmt.Println("Your part of the shared secret:", theirPartial)
 	fmt.Println("The final shared secret:", sharedSecret)
 	return plaintext
+}
+
+func RSAMenu(plaintext string) string {
+	ciphertext := ""
+	fmt.Println("===============================")
+	fmt.Println("RSA key generation")
+	fmt.Println("===============================")
+	fmt.Print("p - prime \nq - prime \n n = pq \n λ(n) = ")
+	fmt.Println("Please input the first prime (p):")
+	p := GetPrimeNumberInput()
+	fmt.Println("Please input the second prime (q):")
+	q := GetPrimeNumberInput()
+	n := p * q
+	lambda := cryptoutils.GenerateLambda(p, q)
+	fmt.Println("Modulus (n):", n)
+	fmt.Println("λ(n): ", lambda)
+	possibleEs := cryptoutils.GenerateEs(lambda, NUM_POSSIBLE_ES)
+
+	return ciphertext
 }
 
 func CaesarMenu(text string, enctype EncType, strtype rotationutils.StringType) string {
