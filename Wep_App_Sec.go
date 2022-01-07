@@ -10,6 +10,15 @@ import (
 func main() {
 	//set the seed once
 	rand.Seed(time.Now().UnixNano())
+	// var someSlice = make([]uint64, 0)
+	// someSlice = append(someSlice, 123123)
+	// someSlice = append(someSlice, 1231234)
+	// someSlice = append(someSlice, 12311231)
+	// someSlice = append(someSlice, 123126)
+	// fmt.Println(someSlice)
+	// fmt.Println(utils.SliceContains(uint64(123123), someSlice))
+	// otherSlice := cryptoutils.GenerateEs(uint64(1575295644196915897), 100)
+	// fmt.Println(otherSlice)
 	// n, e, d := cryptoutils.GenerateRSA()
 	// fmt.Println("n: ", n)
 	// fmt.Println("e: ", e)

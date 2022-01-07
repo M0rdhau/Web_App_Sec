@@ -63,12 +63,22 @@ func GenerateEs(lambda uint64, amt int) []uint64 {
 	var Es = make([]uint64, amt)
 	for i := 0; i < amt; i++ {
 		e := rand.Uint64() % lambda
-		for sliceContains, _ := utils.SliceContains(e, Es); ExtendedEuclid(e, lambda) != 1 || !sliceContains; {
+		sliceContains := false
+		for ExtendedEuclid(e, lambda) != 1 || sliceContains {
+			sliceContains, _ = utils.SliceContains(e, Es)
 			e = rand.Uint64() % lambda
 		}
 		Es[i] = e
 	}
 	return Es
+}
+
+func GenerateCoprime(lambda uint64) uint64 {
+	e := rand.Uint64() % lambda
+	for ExtendedEuclid(e, lambda) != 1 {
+		e = rand.Uint64() % lambda
+	}
+	return e
 }
 
 // returns n, e, d
@@ -77,12 +87,8 @@ func GenerateEs(lambda uint64, amt int) []uint64 {
 func GenerateRSA() (uint64, uint64, uint64) {
 	var p uint64 = 0
 	var q uint64 = 0
-	var e uint64 = 0
 	lambda := GenerateLambda(p, q)
-	e = rand.Uint64() % lambda
-	for ExtendedEuclid(e, lambda) != 1 {
-		e = rand.Uint64() % lambda
-	}
+	e := GenerateCoprime(lambda)
 	d := InverseModulo(int64(e), int64(lambda))
 	return p * q, e, d
 }

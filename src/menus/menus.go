@@ -65,16 +65,16 @@ func GetIntegerInput(displaystring string) (int64, bool) {
 	for {
 		shiftstring, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("Not a valid shift!")
+			fmt.Println("Not an integer!")
 			continue
 		}
 		shiftstring = strings.TrimSpace(shiftstring)
 		if shiftstring == "" {
 			return 0, false
 		}
-		shiftint, err := strconv.ParseInt(shiftstring, 10, 32)
+		shiftint, err := strconv.ParseInt(shiftstring, 10, 64)
 		if err != nil {
-			fmt.Println("Not a valid shift!")
+			fmt.Println("Not an integer!")
 			continue
 		}
 		return int64(shiftint), true
@@ -320,12 +320,27 @@ func DiffieHellmanMenu(plaintext string) string {
 	return plaintext
 }
 
+func GetCoprime(coprimeWith uint64) uint64 {
+	for {
+		smallCoprime, ok := GetIntegerInput("Enter number e")
+		if !ok {
+			return cryptoutils.GenerateCoprime(coprimeWith)
+		}
+		coprime := uint64(smallCoprime)
+		if coprime > coprimeWith && cryptoutils.ExtendedEuclid(coprime, coprimeWith) != 1 {
+			fmt.Println("Not coprime!")
+			continue
+		}
+		return coprime
+	}
+}
+
 func RSAMenu(plaintext string) string {
 	ciphertext := ""
 	fmt.Println("===============================")
 	fmt.Println("RSA key generation")
 	fmt.Println("===============================")
-	fmt.Print("p - prime \nq - prime \n n = pq \n λ(n) = ")
+	fmt.Print("p - prime \nq - prime \nn = pq \nλ(n) = ")
 	fmt.Println("Please input the first prime (p):")
 	p := GetPrimeNumberInput()
 	fmt.Println("Please input the second prime (q):")
@@ -335,7 +350,15 @@ func RSAMenu(plaintext string) string {
 	fmt.Println("Modulus (n):", n)
 	fmt.Println("λ(n): ", lambda)
 	possibleEs := cryptoutils.GenerateEs(lambda, NUM_POSSIBLE_ES)
-
+	fmt.Println("Please select number 'e' that is coprime with λ(n) and e < λ(n)")
+	fmt.Println("Possible 'e'-s:")
+	for i := 0; i < len(possibleEs); i++ {
+		fmt.Println(possibleEs[i])
+	}
+	e := GetCoprime(lambda)
+	fmt.Println("Coprime number: ", e)
+	d := cryptoutils.InverseModulo(int64(e), int64(lambda))
+	fmt.Println("Modular multiplicative inverse of e  modulo λ(n):", d)
 	return ciphertext
 }
 
