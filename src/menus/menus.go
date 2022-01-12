@@ -92,7 +92,7 @@ func GetInputString(strtype rotationutils.StringType) (string, error) {
 	case rotationutils.KeyText:
 		placeholder = "keytext"
 	case rotationutils.RSA:
-		placeholder = "text"
+		placeholder = "the string"
 	default:
 		panic("illegal StringType supplied")
 	}
@@ -254,10 +254,10 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 		fmt.Println(encname, encmethod+"ion")
 		fmt.Println("===============================")
 		text := ""
-		if enctype != DH {
+		if enctype != DH && enctype != RSA {
 			text, _ = GetInputString(strtype)
 		}
-		if text == "" && enctype != DH {
+		if text == "" && enctype != DH && enctype != RSA {
 			return
 		}
 		var resultString string
@@ -274,11 +274,11 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 				return
 			}
 		case RSA:
-			resultString = RSAMenu(text)
+			RSAMenu()
 		case DH:
-			resultString = DiffieHellmanMenu(text)
+			DiffieHellmanMenu()
 		}
-		if enctype != DH {
+		if enctype != DH && enctype != RSA {
 			fmt.Println("Result is:")
 			fmt.Println(resultString)
 		}
@@ -296,7 +296,7 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 // Menu for DH key exchange. What we'll get from this menu in the end will be the shared secret.
 // We let the user decide if they want to let the program generate everything
 // Or if they want to input all the details by themselves
-func DiffieHellmanMenu(plaintext string) string {
+func DiffieHellmanMenu() {
 	var sharedSecret uint64
 
 	// Ask user to input a prime, Otherwise known as 'p'
@@ -324,12 +324,11 @@ func DiffieHellmanMenu(plaintext string) string {
 	fmt.Println("Our part of the shared secret:", ourPartial)
 	fmt.Println("Your part of the shared secret:", theirPartial)
 	fmt.Println("The final shared secret:", sharedSecret)
-	return plaintext
 }
 
 func GetCoprime(coprimeWith uint64) uint64 {
 	for {
-		smallCoprime, ok := GetIntegerInput("Enter number e")
+		smallCoprime, ok := GetIntegerInput("Enter number e (or leave blank to generate a new one)")
 		if !ok {
 			return cryptoutils.GenerateCoprime(coprimeWith)
 		}
@@ -347,7 +346,7 @@ func GenerateRSAMenu() (uint64, uint64, uint64) {
 	fmt.Println("===============================")
 	fmt.Println("RSA key generation")
 	fmt.Println("===============================")
-	fmt.Print("p - prime \nq - prime \nn = pq \nλ(n) = lcm(p-1, q-1)")
+	fmt.Print("p - prime \nq - prime \nn = pq \nλ(n) = lcm(p-1, q-1)\n")
 	fmt.Println("Please input the first prime (p):")
 	p := GetPrimeNumberInput()
 	fmt.Println("p:", p)
@@ -381,8 +380,9 @@ func GenerateRSAMenu() (uint64, uint64, uint64) {
 
 // Would they like to generate keys?
 // If no, would they like to encrypt or decrypt?
-func RSAMenu(plaintext string) string {
+func RSAMenu() {
 	ciphertext := ""
+	var strtype rotationutils.StringType
 	var n uint64 = 0
 	var e uint64 = 0
 	var d uint64 = 0
@@ -397,7 +397,7 @@ func RSAMenu(plaintext string) string {
 		"d is a modulus used in the private key \n" +
 		"if p is plaintext and c is ciphertext \n" +
 		"c = (p)^e % n \n" +
-		"p = (c)^d % n == ((p)^e)^d % n")
+		"p = (c)^d % n == ((p)^e)^d % n \n")
 	fmt.Println("===============================")
 	fmt.Println("Would you like to generate keys?")
 	fmt.Println("[N]o? Or press any key to generate")
@@ -428,7 +428,7 @@ func RSAMenu(plaintext string) string {
 			}
 		}
 	}
-	for shouldGenerate {
+	for !shouldGenerate {
 		nShort, ok := GetIntegerInput("Input n (it is necessary):")
 		if !ok {
 			fmt.Println("Operation cannot be performed otherwise. If you'd like to quit, input X")
@@ -436,7 +436,7 @@ func RSAMenu(plaintext string) string {
 			if err == nil {
 				input = strings.ToUpper(strings.TrimSpace(input))
 				if input == "X" {
-					return ""
+					return
 				}
 			}
 			continue
@@ -444,7 +444,7 @@ func RSAMenu(plaintext string) string {
 		n = uint64(nShort)
 		break
 	}
-	for shouldGenerate {
+	for !shouldGenerate {
 		eShort, eOk := GetIntegerInput("Input 'e' - for encryption:")
 		e = uint64(eShort)
 		dShort, dOk := GetIntegerInput("Input 'd' - for decryption:")
@@ -455,18 +455,61 @@ func RSAMenu(plaintext string) string {
 			if err == nil {
 				input = strings.ToUpper(strings.TrimSpace(input))
 				if input == "X" {
-					return ""
+					return
 				}
 			}
 			continue
 		}
 		break
 	}
-	ciphertext = rotationutils.DoRSA(plaintext, n, e, d, rotationutils.CipherText)
-	fmt.Println(ciphertext)
-	ciphertext = rotationutils.DoRSA(plaintext, n, d, e, rotationutils.CipherText)
-	fmt.Println(ciphertext)
-	return ciphertext
+	for {
+		if e != 0 && d != 0 {
+			for {
+				fmt.Println("Would you like to [E]ncrypt or [D]ecrypt a string?")
+				fmt.Println("Or would you like to go [B]ack to the previous menu?")
+				input, err := reader.ReadString('\n')
+				if err != nil {
+					return
+				}
+				input = strings.ToUpper(strings.TrimSpace(input))
+				// Handle input
+				if input == "B" {
+					return
+				} else if input != "E" && input != "D" {
+					fmt.Println("Invalid Option")
+					continue
+				}
+				if input == "E" {
+					strtype = rotationutils.PlainText
+				} else {
+					strtype = rotationutils.CipherText
+				}
+				break
+			}
+		} else if e == 0 {
+			strtype = rotationutils.CipherText
+		} else {
+			strtype = rotationutils.PlainText
+		}
+		plaintext, err := GetInputString(strtype)
+		if err != nil || plaintext == "" {
+			return
+		}
+		if strtype == rotationutils.CipherText {
+			ciphertext, err = rotationutils.DoRSA(plaintext, n, d, strtype)
+			if err != nil {
+				fmt.Println("Malformed string - input again!")
+				continue
+			}
+		} else {
+			ciphertext, err = rotationutils.DoRSA(plaintext, n, e, strtype)
+			if err != nil {
+				fmt.Println("Malformed string - input again!")
+				continue
+			}
+		}
+		fmt.Println(ciphertext)
+	}
 }
 
 func CaesarMenu(text string, enctype EncType, strtype rotationutils.StringType) string {
