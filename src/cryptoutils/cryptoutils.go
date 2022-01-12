@@ -47,13 +47,17 @@ func InverseModulo(a int64, n int64) uint64 {
 
 }
 
+/*
+	Compute λ(n), where λ is Carmichael's totient function.
+	Since n = pq, λ(n) = lcm(λ(p), λ(q)), and since p and q are prime,
+	λ(p) = φ(p) = p − 1, and likewise λ(q) = q − 1. Hence λ(n) = lcm(p − 1, q − 1)
+*/
 func GenerateLambda(p uint64, q uint64) uint64 {
 	var lambda uint64 = 0
 	for lambdaBigEnough := false; !lambdaBigEnough; {
-		p = GeneratePrime(false)
-		q = GeneratePrime(false)
 		// n := p * q
-		lambda = (p * q) / ExtendedEuclid(p-1, q-1)
+		gcd := ExtendedEuclid(p-1, q-1)
+		lambda = ((p - 1) * (q - 1)) / gcd
 		lambdaBigEnough = lambda > 2
 	}
 	return lambda
@@ -85,8 +89,8 @@ func GenerateCoprime(lambda uint64) uint64 {
 // pubkey - n + e
 // privkey - d
 func GenerateRSA() (uint64, uint64, uint64) {
-	var p uint64 = 0
-	var q uint64 = 0
+	p := GeneratePrime(true)
+	q := GeneratePrime(true)
 	lambda := GenerateLambda(p, q)
 	e := GenerateCoprime(lambda)
 	d := InverseModulo(int64(e), int64(lambda))
@@ -276,7 +280,6 @@ func TestPrimeSlow(possible uint64) bool {
 // number^pow%mod
 func Modpow(mod uint64, pow uint64, number uint64) uint64 {
 	var res uint64 = 1
-
 	number = number % mod
 	for pow > 0 {
 		if pow%2 == 1 {

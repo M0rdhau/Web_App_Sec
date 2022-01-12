@@ -74,7 +74,7 @@ func GetIntegerInput(displaystring string) (int64, bool) {
 		}
 		shiftint, err := strconv.ParseInt(shiftstring, 10, 64)
 		if err != nil {
-			fmt.Println("Not an integer!")
+			fmt.Println("Not an integer, or too big!")
 			continue
 		}
 		return int64(shiftint), true
@@ -91,6 +91,8 @@ func GetInputString(strtype rotationutils.StringType) (string, error) {
 		placeholder = "plaintext"
 	case rotationutils.KeyText:
 		placeholder = "keytext"
+	case rotationutils.RSA:
+		placeholder = "text"
 	default:
 		panic("illegal StringType supplied")
 	}
@@ -177,6 +179,11 @@ func MainMenu() {
 
 // Intermediary menu, title is self explanatory
 func ChooseEncryptMenu(enctype EncType) (bool, error) {
+	//skip the menu if encryption type is advanced crypto
+	if enctype == DH || enctype == RSA {
+		EncryptDecryptMenu(enctype, rotationutils.RSA)
+		return true, nil
+	}
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Println("===============================")
@@ -191,7 +198,7 @@ func ChooseEncryptMenu(enctype EncType) (bool, error) {
 			fmt.Println("Diffie Hellman")
 		}
 		fmt.Println("===============================")
-		if enctype == DH {
+		if enctype == DH || enctype == RSA {
 			fmt.Println("Press any key to proceed")
 		} else {
 			fmt.Println("Would you like to [E]ncrypt or [D]ecrypt a string?")
@@ -208,7 +215,7 @@ func ChooseEncryptMenu(enctype EncType) (bool, error) {
 			return true, nil
 		} else if input == "X" {
 			return false, nil
-		} else if input != "E" && input != "D" && enctype != DH {
+		} else if input != "E" && input != "D" && enctype != DH && enctype != RSA {
 			fmt.Println("Invalid Option")
 			continue
 		}
@@ -335,17 +342,20 @@ func GetCoprime(coprimeWith uint64) uint64 {
 	}
 }
 
-func RSAMenu(plaintext string) string {
-	ciphertext := ""
+// Generates Private and Public keys
+func GenerateRSAMenu() (uint64, uint64, uint64) {
 	fmt.Println("===============================")
 	fmt.Println("RSA key generation")
 	fmt.Println("===============================")
-	fmt.Print("p - prime \nq - prime \nn = pq \nλ(n) = ")
+	fmt.Print("p - prime \nq - prime \nn = pq \nλ(n) = lcm(p-1, q-1)")
 	fmt.Println("Please input the first prime (p):")
 	p := GetPrimeNumberInput()
+	fmt.Println("p:", p)
 	fmt.Println("Please input the second prime (q):")
 	q := GetPrimeNumberInput()
+	fmt.Println("q:", q)
 	n := p * q
+	fmt.Println("n:", n)
 	lambda := cryptoutils.GenerateLambda(p, q)
 	fmt.Println("Modulus (n):", n)
 	fmt.Println("λ(n): ", lambda)
@@ -356,9 +366,106 @@ func RSAMenu(plaintext string) string {
 		fmt.Println(possibleEs[i])
 	}
 	e := GetCoprime(lambda)
-	fmt.Println("Coprime number: ", e)
+	fmt.Println("Coprime number e: ", e)
 	d := cryptoutils.InverseModulo(int64(e), int64(lambda))
 	fmt.Println("Modular multiplicative inverse of e  modulo λ(n):", d)
+
+	fmt.Println("Modulus (used in both pub and priv keys):")
+	fmt.Println(n)
+	fmt.Println("Public key (exponent):")
+	fmt.Println(e)
+	fmt.Println("Private key (also exponent):")
+	fmt.Println(d)
+	return n, e, d
+}
+
+// Would they like to generate keys?
+// If no, would they like to encrypt or decrypt?
+func RSAMenu(plaintext string) string {
+	ciphertext := ""
+	var n uint64 = 0
+	var e uint64 = 0
+	var d uint64 = 0
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("===============================")
+	fmt.Println("RSA")
+	fmt.Println("===============================")
+	fmt.Print("RSA is an asymmetric cryptosystem that uses three numbers for \n" +
+		"Encryption and decryption - n, e and d \n" +
+		"n is an exponent shared by both private and public keys \n" +
+		"e is a modulus used in the public key \n" +
+		"d is a modulus used in the private key \n" +
+		"if p is plaintext and c is ciphertext \n" +
+		"c = (p)^e % n \n" +
+		"p = (c)^d % n == ((p)^e)^d % n")
+	fmt.Println("===============================")
+	fmt.Println("Would you like to generate keys?")
+	fmt.Println("[N]o? Or press any key to generate")
+	shouldGenerate := false
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		shouldGenerate = true
+	}
+	input = strings.ToUpper(strings.TrimSpace(input))
+	if input != "N" && input != "No" {
+		shouldGenerate = true
+	}
+	if shouldGenerate {
+		n, e, d = GenerateRSAMenu()
+		for {
+			fmt.Println("Would you like to generate [N]ew keys, [E]nter your own keys, or keep the generated keys[Press any key]?")
+			input, err = reader.ReadString('\n')
+			if err == nil {
+				input = strings.ToUpper(strings.TrimSpace(input))
+				if input == "X" {
+					n, e, d = GenerateRSAMenu()
+					continue
+				} else if input == "E" {
+					shouldGenerate = false
+				} else {
+					break
+				}
+			}
+		}
+	}
+	for shouldGenerate {
+		nShort, ok := GetIntegerInput("Input n (it is necessary):")
+		if !ok {
+			fmt.Println("Operation cannot be performed otherwise. If you'd like to quit, input X")
+			input, err := reader.ReadString('\n')
+			if err == nil {
+				input = strings.ToUpper(strings.TrimSpace(input))
+				if input == "X" {
+					return ""
+				}
+			}
+			continue
+		}
+		n = uint64(nShort)
+		break
+	}
+	for shouldGenerate {
+		eShort, eOk := GetIntegerInput("Input 'e' - for encryption:")
+		e = uint64(eShort)
+		dShort, dOk := GetIntegerInput("Input 'd' - for decryption:")
+		d = uint64(dShort)
+		if !dOk && !eOk {
+			fmt.Println("Operation cannot be performed without at least one more number. If you'd like to quit, input X")
+			input, err := reader.ReadString('\n')
+			if err == nil {
+				input = strings.ToUpper(strings.TrimSpace(input))
+				if input == "X" {
+					return ""
+				}
+			}
+			continue
+		}
+		break
+	}
+	ciphertext = rotationutils.DoRSA(plaintext, n, e, d, rotationutils.CipherText)
+	fmt.Println(ciphertext)
+	ciphertext = rotationutils.DoRSA(plaintext, n, d, e, rotationutils.CipherText)
+	fmt.Println(ciphertext)
 	return ciphertext
 }
 
