@@ -91,6 +91,11 @@ func GenerateDH(prime uint64, primitive uint64, userSecret uint64) (serverSecret
 	maxuint := uint64(math.Sqrt(float64(math.MaxUint64)))
 	if prime > maxuint {
 		err = errors.New("Prime too large, it has to be less than " + fmt.Sprint(maxuint))
+		return
+	}
+	if !TestPrime(prime, 50) {
+		err = errors.New("Provided number is not a prime")
+		return
 	}
 	if prime == 0 {
 		prime = GeneratePrime(false)
