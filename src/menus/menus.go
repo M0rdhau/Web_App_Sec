@@ -106,26 +106,6 @@ func GetInputString(strtype rotationutils.StringType) (string, error) {
 	return input, nil
 }
 
-// Brings up a menu that will let the user choose their secret.
-// It will also check if their encryption is valid (by checking the shared secret)
-func GetDiffieHellmanSecret(partial uint64, secret uint64, prime uint64, primitive uint64) (uint64, uint64, uint64) {
-	for {
-		theirsecret, ok := GetIntegerInput("Please input your your unencrypted secret, or leave blank auto-generate it")
-		if !ok {
-			theirsecret = int64(rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64))))
-		}
-		theirencrypted := cryptoutils.Modpow(prime, uint64(theirsecret), primitive)
-		sharedOur := cryptoutils.Modpow(prime, secret, uint64(theirencrypted))
-		sharedTheir := cryptoutils.Modpow(prime, uint64(theirsecret), partial)
-		if sharedOur != sharedTheir {
-			fmt.Println("something's wrong")
-			continue
-		}
-
-		return uint64(theirsecret), theirencrypted, sharedOur
-	}
-}
-
 //Main menu - the entry point
 func MainMenu() {
 	buff := ""
@@ -290,6 +270,26 @@ func EncryptDecryptMenu(enctype EncType, strtype rotationutils.StringType) {
 		}
 		input = strings.ToUpper(strings.TrimSpace(input))
 		continueLooping = input == "Y"
+	}
+}
+
+// Brings up a menu that will let the user choose their secret.
+// It will also check if their encryption is valid (by checking the shared secret)
+func GetDiffieHellmanSecret(partial uint64, secret uint64, prime uint64, primitive uint64) (uint64, uint64, uint64) {
+	for {
+		theirsecret, ok := GetIntegerInput("Please input your your unencrypted secret, or leave blank auto-generate it")
+		if !ok {
+			theirsecret = int64(rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64))))
+		}
+		theirencrypted := cryptoutils.Modpow(prime, uint64(theirsecret), primitive)
+		sharedOur := cryptoutils.Modpow(prime, secret, uint64(theirencrypted))
+		sharedTheir := cryptoutils.Modpow(prime, uint64(theirsecret), partial)
+		if sharedOur != sharedTheir {
+			fmt.Println("something's wrong")
+			continue
+		}
+
+		return uint64(theirsecret), theirencrypted, sharedOur
 	}
 }
 

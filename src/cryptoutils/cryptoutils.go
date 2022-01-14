@@ -1,6 +1,8 @@
 package cryptoutils
 
 import (
+	"errors"
+	"fmt"
 	"math"
 	"math/rand"
 
@@ -85,6 +87,38 @@ func GenerateCoprime(lambda uint64) uint64 {
 	return e
 }
 
+func GenerateDH(prime uint64, primitive uint64, userSecret uint64) (serverSecret uint64, sharedSecret uint64, err error) {
+	maxuint := uint64(math.Sqrt(float64(math.MaxUint64)))
+	if prime > maxuint {
+		err = errors.New("Prime too large, it has to be less than " + fmt.Sprint(maxuint))
+	}
+	if prime == 0 {
+		prime = GeneratePrime(false)
+	}
+	if primitive == 0 {
+		primitive = FindPrimitive(prime)
+	}
+	if !CheckPrimitive(prime, primitive) {
+		err = errors.New("Prime and Primitive do not correspond to each other")
+		return
+	}
+	// Generate our number that we'll (in theory) keep secret
+	// Used for generating our part of the shared secret
+	serverSecret = rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64)))
+	//our part of the shared secret that will go through an insecure medium
+	ourPartial := Modpow(prime, serverSecret, primitive)
+	// This will gather user's secret number and generate their part of the shared secret
+	// as well as generating THE shared secret
+	theirPartial := Modpow(prime, uint64(userSecret), primitive)
+	sharedOur := Modpow(prime, serverSecret, uint64(theirPartial))
+	sharedTheir := Modpow(prime, uint64(userSecret), ourPartial)
+	if sharedOur != sharedTheir {
+		err = errors.New("Unable to match computed secrets with each other")
+		return
+	}
+	return serverSecret, sharedOur, nil
+}
+
 // returns n, e, d
 // pubkey - n + e
 // privkey - d
@@ -124,6 +158,8 @@ func FindPrimeFactors(n uint64) []uint64 {
 
 }
 
+// Pass prime n and primitive p to check
+// if they are a correct pair
 func CheckPrimitive(n uint64, p uint64) bool {
 	if p > n {
 		return false
@@ -145,6 +181,8 @@ func CheckPrimitive(n uint64, p uint64) bool {
 	return false
 }
 
+// Find a primitive of a prime n for Diffie-Hellmann
+// Primitive is also described as primitive root modulo n
 func FindPrimitive(n uint64) uint64 {
 	phi := n - 1
 	factors := FindPrimeFactors(phi)
