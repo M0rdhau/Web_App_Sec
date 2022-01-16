@@ -1,18 +1,17 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
-func GetHello(c *gin.Context) {
-	c.String(http.StatusOK, "pong")
-}
-
 func Route() {
 	router := gin.Default()
-	router.GET("/", GetHello)
-	router.GET("/caesar", GetCaesarString)
+	api := router.Group("/api")
+	{
+		api.GET("/caesar", GetCaesarString)
+		api.GET("/vigenere", GetCaesarString)
+		api.POST("/login", Login)
+		api.POST("/signup", Signup)
+	}
 	router.Run("localhost:8080")
 }
