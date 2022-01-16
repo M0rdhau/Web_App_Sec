@@ -127,13 +127,20 @@ func GenerateDH(prime uint64, primitive uint64, userSecret uint64) (serverSecret
 // returns n, e, d
 // pubkey - n + e
 // privkey - d
-func GenerateRSA() (uint64, uint64, uint64) {
-	p := GeneratePrime(true)
-	q := GeneratePrime(true)
+func GenerateRSA(p uint64, q uint64) (uint64, uint64, uint64, string) {
+	message := ""
+	if !TestPrime(p, 50) || p == 0 {
+		message += "First prime is actually not a prime\n"
+		p = GeneratePrime(true)
+	}
+	if !TestPrime(q, 50) || q == 0 {
+		message += "Second prime is actually not a prime\n"
+		q = GeneratePrime(true)
+	}
 	lambda := GenerateLambda(p, q)
 	e := GenerateCoprime(lambda)
 	d := InverseModulo(int64(e), int64(lambda))
-	return p * q, e, d
+	return p * q, e, d, message
 }
 
 func FindPrimeFactors(n uint64) []uint64 {
