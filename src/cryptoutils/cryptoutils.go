@@ -87,23 +87,23 @@ func GenerateCoprime(lambda uint64) uint64 {
 	return e
 }
 
-func GenerateDH(prime uint64, primitive uint64, userSecret uint64) (serverSecret uint64, sharedSecret uint64, err error) {
+func GenerateDH(prime *uint64, primitive *uint64, userSecret uint64) (serverSecret uint64, sharedSecret uint64, err error) {
 	maxuint := uint64(math.Sqrt(float64(math.MaxUint64)))
-	if prime > maxuint {
+	if *prime > maxuint {
 		err = errors.New("Prime too large, it has to be less than " + fmt.Sprint(maxuint))
 		return
 	}
-	if !TestPrime(prime, 50) {
+	if *prime != 0 && !TestPrime(*prime, 50) {
 		err = errors.New("Provided number is not a prime")
 		return
 	}
-	if prime == 0 {
-		prime = GeneratePrime(false)
+	if *prime == 0 {
+		*prime = GeneratePrime(false)
 	}
-	if primitive == 0 {
-		primitive = FindPrimitive(prime)
+	if *primitive == 0 {
+		*primitive = FindPrimitive(*prime)
 	}
-	if !CheckPrimitive(prime, primitive) {
+	if !CheckPrimitive(*prime, *primitive) {
 		err = errors.New("Prime and Primitive do not correspond to each other")
 		return
 	}
@@ -111,12 +111,12 @@ func GenerateDH(prime uint64, primitive uint64, userSecret uint64) (serverSecret
 	// Used for generating our part of the shared secret
 	serverSecret = rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64)))
 	//our part of the shared secret that will go through an insecure medium
-	ourPartial := Modpow(prime, serverSecret, primitive)
+	ourPartial := Modpow(*prime, serverSecret, *primitive)
 	// This will gather user's secret number and generate their part of the shared secret
 	// as well as generating THE shared secret
-	theirPartial := Modpow(prime, uint64(userSecret), primitive)
-	sharedOur := Modpow(prime, serverSecret, uint64(theirPartial))
-	sharedTheir := Modpow(prime, uint64(userSecret), ourPartial)
+	theirPartial := Modpow(*prime, uint64(userSecret), *primitive)
+	sharedOur := Modpow(*prime, serverSecret, uint64(theirPartial))
+	sharedTheir := Modpow(*prime, uint64(userSecret), ourPartial)
 	if sharedOur != sharedTheir {
 		err = errors.New("Unable to match computed secrets with each other")
 		return
@@ -127,20 +127,20 @@ func GenerateDH(prime uint64, primitive uint64, userSecret uint64) (serverSecret
 // returns n, e, d
 // pubkey - n + e
 // privkey - d
-func GenerateRSA(p uint64, q uint64) (uint64, uint64, uint64, string) {
+func GenerateRSA(p *uint64, q *uint64) (uint64, uint64, uint64, string) {
 	message := ""
-	if !TestPrime(p, 50) || p == 0 {
-		message += "First prime is actually not a prime\n"
-		p = GeneratePrime(true)
+	if *p == 0 || !TestPrime(*p, 50) {
+		message += "First prime is actually not a prime \n"
+		*p = GeneratePrime(true)
 	}
-	if !TestPrime(q, 50) || q == 0 {
-		message += "Second prime is actually not a prime\n"
-		q = GeneratePrime(true)
+	if *q == 0 || !TestPrime(*q, 50) {
+		message += "Second prime is actually not a prime"
+		*q = GeneratePrime(true)
 	}
-	lambda := GenerateLambda(p, q)
+	lambda := GenerateLambda(*p, *q)
 	e := GenerateCoprime(lambda)
 	d := InverseModulo(int64(e), int64(lambda))
-	return p * q, e, d, message
+	return *p * *q, e, d, message
 }
 
 func FindPrimeFactors(n uint64) []uint64 {

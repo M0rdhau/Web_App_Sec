@@ -13,6 +13,6 @@ func InitDatabase() (err error) {
 	if err != nil {
 		return
 	}
-	GlobalDB.AutoMigrate(&User{})
+	GlobalDB.AutoMigrate(&User{}, &CaesarEntry{}, &VigenereEntry{}, &DHEntry{}, &RSAEntry{}, &RSAEncryption{})
 	return
 }
