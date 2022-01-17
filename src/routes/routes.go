@@ -17,11 +17,21 @@ func Route() {
 
 		protected := api.Group("/protected").Use(middlewares.Authware())
 		{
+			protected.GET("/caesar", GetCaesarEntries)
+			protected.GET("/vigenere", GetVigenereEntries)
+			protected.GET("/diffiehellman", GetDHEntries)
+			protected.GET("/rsa/generate", GetRSAEntries)
+			protected.GET("/rsa/encrypt", GetRSAEncryptions)
 			protected.POST("/caesar", GetCaesarString)
-			protected.POST("/vigenere", GetCaesarString)
+			protected.POST("/vigenere", GetVigenereString)
 			protected.POST("/diffiehellman", GetGeneratedDiffieHellman)
-			protected.POST("/rsa", GetGeneratedRSA)
+			protected.POST("/rsa/generate", GetGeneratedRSA)
 			protected.POST("/rsa/encrypt", UseRSA)
+			protected.DELETE("/caesar/:id", DeleteCaesarEntry)
+			protected.DELETE("/vigenere/:id", DeleteVigenereEntry)
+			protected.DELETE("/diffiehellman/:id", DeleteDHEntry)
+			protected.DELETE("/rsa/generate/:id", DeleteRSAEntry)
+			protected.DELETE("/rsa/encrypt/:id", DeleteRSAEncryption)
 		}
 	}
 	router.Run("localhost:8080")

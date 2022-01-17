@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/m0rdhau/Web_App_Sec/src/cryptoutils"
@@ -15,6 +16,7 @@ type RSARequest struct {
 }
 
 type RSAResponse struct {
+	ID      uint   `json:"id"`
 	PrimeP  uint64 `json:"primep"`
 	PrimeQ  uint64 `json:"primeq"`
 	Private uint64 `json:"private"`
@@ -31,11 +33,113 @@ type RSAEncRequest struct {
 }
 
 type RSAEncResponse struct {
+	ID       uint   `json:"id"`
 	Exponent uint64 `json:"exp"`
 	Modulus  uint64 `json:"mod"`
 	Text     string `json:"text"`
 	Result   string `json:"result"`
 	Encrypt  bool   `json:"encrypt"`
+}
+
+func GetRSAEntries(c *gin.Context) {
+	entries := make([]db.RSAEntry, 10)
+	user := db.GetUser(c)
+	entryResult := db.GlobalDB.Where("user_id = ?", user.ID).Order("created_at desc").Find(&entries).Limit(10)
+	responseEntries := make([]RSAResponse, 0)
+	for _, entry := range entries {
+		responseEntries = append(responseEntries, RSAResponse{
+			ID:      entry.ID,
+			PrimeP:  entry.PrimeP,
+			PrimeQ:  entry.PrimeQ,
+			Private: entry.Private,
+			Public:  entry.Public,
+			Modulus: entry.Modulus,
+		})
+	}
+	if entryResult.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "Database Failure",
+		})
+		c.Abort()
+	} else {
+		c.JSON(http.StatusOK, responseEntries)
+	}
+
+}
+
+func GetRSAEncryptions(c *gin.Context) {
+	entries := make([]db.RSAEncryption, 10)
+	user := db.GetUser(c)
+	entryResult := db.GlobalDB.Where("user_id = ?", user.ID).Order("created_at desc").Find(&entries).Limit(10)
+	responseEntries := make([]RSAEncResponse, 0)
+	for _, entry := range entries {
+		responseEntries = append(responseEntries, RSAEncResponse{
+			ID:       entry.ID,
+			Exponent: entry.Exponent,
+			Modulus:  entry.Modulus,
+			Text:     entry.Text,
+			Result:   entry.Result,
+		})
+	}
+	if entryResult.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "Database Failure",
+		})
+		c.Abort()
+	} else {
+		c.JSON(http.StatusOK, responseEntries)
+	}
+
+}
+
+func DeleteRSAEntry(c *gin.Context) {
+	var entry db.RSAEntry
+	user := db.GetUser(c)
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "Wrong type of id supplied",
+		})
+		c.Abort()
+	}
+	result := db.GlobalDB.First(&entry, id)
+
+	db.HandleDBErrors(c, result, "RSA Entry not found")
+	db.HandleUserNotAllowed(c, user, entry.UserID)
+	result = db.GlobalDB.Delete(&entry)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "Database Failure",
+		})
+		c.Abort()
+	} else {
+		c.String(http.StatusNoContent, "deleted")
+	}
+}
+
+func DeleteRSAEncryption(c *gin.Context) {
+	var entry db.RSAEncryption
+	user := db.GetUser(c)
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "Wrong type of id supplied",
+		})
+		c.Abort()
+	}
+	result := db.GlobalDB.First(&entry, id)
+
+	db.HandleDBErrors(c, result, "RSA Entry not found")
+	db.HandleUserNotAllowed(c, user, entry.UserID)
+	result = db.GlobalDB.Delete(&entry)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "Database Failure",
+		})
+		c.Abort()
+	} else {
+		c.String(http.StatusNoContent, "deleted")
+	}
 }
 
 func UseRSA(c *gin.Context) {
@@ -69,6 +173,7 @@ func UseRSA(c *gin.Context) {
 		return
 	}
 	res := RSAEncResponse{
+		ID:       rsaEncryption.ID,
 		Text:     req.Text,
 		Result:   encrypted,
 		Exponent: req.Exponent,
@@ -103,6 +208,7 @@ func GetGeneratedRSA(c *gin.Context) {
 		return
 	}
 	res := RSAResponse{
+		ID:      rsaOperation.ID,
 		PrimeP:  req.PrimeP,
 		PrimeQ:  req.PrimeQ,
 		Private: e,
