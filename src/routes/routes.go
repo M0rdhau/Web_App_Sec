@@ -8,7 +8,11 @@ import (
 
 func Route() {
 	router := gin.Default()
-	router.Use(cors.Default())
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowMethods = []string{"GET", "POST", "DELETE"}
+	config.AllowHeaders = []string{"Authorization", "Origin", "content-type"}
+	router.Use(cors.New(config))
 	api := router.Group("/api")
 	{
 		public := api.Group("/public")

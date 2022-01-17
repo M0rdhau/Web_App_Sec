@@ -7,6 +7,7 @@ import register from "../services/register";
 import Login from "./presentational/Login";
 import { UserActions } from "./presentational/UserActions";
 import Register from "./presentational/Register";
+import { Encryptions } from "./Encryptions";
 
 export const UserScreen = () => {
     const [registering, setRegistering] = useState(false);
@@ -20,28 +21,31 @@ export const UserScreen = () => {
         confirmPassword: "",
     });
     const [areEqual, setAreEqual] = useState(true);
-    const [encType, setEncType] = useState("/caesar");
+    const [encType, setEncType] = useState({
+        name: "Caesar",
+        route: "/caesar",
+    });
 
     const encTypes = [
         {
             name: "Caesar",
-            route: "/caesar"
+            route: "/caesar",
         },
         {
             name: "Vigenere",
-            route: "/vigenere"
+            route: "/vigenere",
         },
         {
             name: "Diffie-Hellmann",
-            route: "/diffiehellman"
+            route: "/diffiehellman",
         },
         {
             name: "RSA - Key Generation",
-            route: "/rsa/generate"
+            route: "/rsa/generate",
         },
         {
             name: "RSA - Encrypt/Decrypt",
-            route: "/rsa/generate"
+            route: "/rsa/generate",
         },
     ];
 
@@ -88,7 +92,9 @@ export const UserScreen = () => {
     };
 
     const handleEncTypeSwitch = (event) => {
-        setEncType(event.target.name)
+        setEncType(
+            encTypes.filter((encType) => encType.route === event.target.name)
+        );
     };
 
     const onConfirmPasswordChange = (event) => {
@@ -106,7 +112,7 @@ export const UserScreen = () => {
                         handleEncTypeSwitch={handleEncTypeSwitch}
                         encTypes={encTypes}
                     >
-                        
+                        <Encryptions encType={encType}/>
                     </UserActions>
                 ) : (
                     <Login

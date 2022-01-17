@@ -77,6 +77,10 @@ func GetCaesarString(c *gin.Context) {
 	var req caesarRequest
 	var strType rotationutils.StringType
 	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "JSON fields unsupported",
+		})
+		c.Abort()
 		return
 	}
 	if req.Encrypt {

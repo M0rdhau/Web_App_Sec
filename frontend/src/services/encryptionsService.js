@@ -4,7 +4,7 @@ const baseUrl = "/api/protected";
 let token = null;
 
 const setToken = (newToken) => {
-    token = `bearer ${newToken}`;
+    token = `Bearer ${newToken}`;
 };
 
 const getEntries = async (entryRoute) => {
@@ -27,7 +27,7 @@ const deleteEntry = async (entryID, entryRoute) => {
     const config = {
         headers: { Authorization: token },
     };
-    const response = await axios.post(`${baseUrl}${entryRoute}/${entryID}`, config);
+    const response = await axios.delete(`${baseUrl}${entryRoute}/${entryID}`, config);
     return response;
 }
 

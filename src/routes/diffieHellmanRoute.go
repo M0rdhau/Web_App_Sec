@@ -10,14 +10,14 @@ import (
 )
 
 type diffieHellmanRequest struct {
-	Prime      uint64 `json:"prime"`
+	Prime      uint64 `json:"primep"`
 	Primitive  uint64 `json:"primitive"`
 	UserSecret uint64 `json:"userSecret"`
 }
 
 type diffieHellmanResponse struct {
 	ID           uint   `json:"id"`
-	Prime        uint64 `json:"prime"`
+	Prime        uint64 `json:"primep"`
 	Primitive    uint64 `json:"primitive"`
 	UserSecret   uint64 `json:"userSecret"`
 	ServerSecret uint64 `json:"serverSecret"`
