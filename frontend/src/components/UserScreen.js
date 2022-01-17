@@ -45,7 +45,7 @@ export const UserScreen = () => {
         },
         {
             name: "RSA - Encrypt/Decrypt",
-            route: "/rsa/generate",
+            route: "/rsa/encrypt",
         },
     ];
 
@@ -93,7 +93,7 @@ export const UserScreen = () => {
 
     const handleEncTypeSwitch = (event) => {
         setEncType(
-            encTypes.filter((encType) => encType.route === event.target.name)
+            encTypes.filter((encType) => encType.route === event.target.name).pop()
         );
     };
 

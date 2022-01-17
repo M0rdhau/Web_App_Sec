@@ -12,6 +12,12 @@ code {
     monospace;
 }
 
+.userForm{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
 .encryptionBox {
     display: flex;
     flex-direction: column;

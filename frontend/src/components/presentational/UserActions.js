@@ -10,10 +10,12 @@ export const UserActions = (props) => {
                 ))}
             </div>
             <div className="loginForm">
+                <div className="userForm">
                 <p>Hello, {props.user.username}</p>
                 <button className="logoutButton" onClick={props.handleLogout}>
                     Log out
                 </button>
+                </div>
                 {props.children}
             </div>
         </>
