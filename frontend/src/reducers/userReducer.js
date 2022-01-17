@@ -18,6 +18,7 @@ const userReducer = (state = null, action) => {
 export const loginUser = (username, password) => {
   return async dispatch => {
     const data = await login(username, password)
+    console.log(data)
     encryptionService.setToken(data.token)
     window.localStorage.setItem(USER_NAME, data.username)
     window.localStorage.setItem(USER_TOKEN, data.token)

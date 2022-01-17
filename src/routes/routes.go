@@ -1,12 +1,14 @@
 package routes
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/m0rdhau/Web_App_Sec/src/middlewares"
 )
 
 func Route() {
 	router := gin.Default()
+	router.Use(cors.Default())
 	api := router.Group("/api")
 	{
 		public := api.Group("/public")

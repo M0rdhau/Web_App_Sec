@@ -1,20 +1,36 @@
-import axios from 'axios'
-const baseUrl = '/api/protected'
+import axios from "axios";
+const baseUrl = "/api/protected";
 
-let token = null
+let token = null;
 
-const setToken = newToken => {
-  token = `bearer ${newToken}`
-}
+const setToken = (newToken) => {
+    token = `bearer ${newToken}`;
+};
 
-const getCaesars = async () => {
+const getEntries = async (entryRoute) => {
     const config = {
-        headers: { Authorization: token }
-      }
-      const response = await axios.get(`${baseUrl}/caesar`, config)
-      return response
+        headers: { Authorization: token },
+    };
+    const response = await axios.get(`${baseUrl}${entryRoute}`, config);
+    return response;
+};
+
+const addEntry = async (entryData, entryRoute) => {
+    const config = {
+        headers: { Authorization: token },
+    };
+    const response = await axios.post(`${baseUrl}${entryRoute}`, entryData, config);
+    return response;
+};
+
+const deleteEntry = async (entryID, entryRoute) => {
+    const config = {
+        headers: { Authorization: token },
+    };
+    const response = await axios.post(`${baseUrl}${entryRoute}/${entryID}`, config);
+    return response;
 }
 
-const encryptionService = { setToken, getCaesars }
+const encryptionService = { setToken, getEntries, addEntry, deleteEntry };
 
-export default encryptionService
+export default encryptionService;

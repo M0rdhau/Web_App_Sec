@@ -2,6 +2,7 @@ package routes
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/m0rdhau/Web_App_Sec/src/auth"
@@ -17,7 +18,8 @@ type LoginPayload struct {
 
 // LoginResponse token response
 type LoginResponse struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Username string `json:"username"`
 }
 
 // Signup creates a user in db
@@ -28,7 +30,7 @@ func Signup(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 
-		c.JSON(400, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"msg": "invalid json",
 		})
 		c.Abort()
@@ -45,7 +47,7 @@ func Signup(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "error hashing password",
 		})
 		c.Abort()
@@ -57,7 +59,7 @@ func Signup(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "error creating user",
 		})
 		c.Abort()
@@ -65,7 +67,7 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, user)
+	c.JSON(http.StatusOK, user)
 }
 
 // Login logs users in
@@ -75,7 +77,7 @@ func Login(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&payload)
 	if err != nil {
-		c.JSON(400, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"msg": "invalid json",
 		})
 		c.Abort()
@@ -85,7 +87,7 @@ func Login(c *gin.Context) {
 	result := db.GlobalDB.Where("username = ?", payload.Username).First(&user)
 
 	if result.Error == gorm.ErrRecordNotFound {
-		c.JSON(401, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"msg": "invalid user credentials",
 		})
 		c.Abort()
@@ -95,7 +97,7 @@ func Login(c *gin.Context) {
 	err = user.CheckPassword(payload.Password)
 	if err != nil {
 		log.Println(err)
-		c.JSON(401, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"msg": "invalid user credentials",
 		})
 		c.Abort()
@@ -111,7 +113,7 @@ func Login(c *gin.Context) {
 	signedToken, err := jwtWrapper.GenerateToken(user.Username)
 	if err != nil {
 		log.Println(err)
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "error signing token",
 		})
 		c.Abort()
@@ -119,10 +121,11 @@ func Login(c *gin.Context) {
 	}
 
 	tokenResponse := LoginResponse{
-		Token: signedToken,
+		Token:    signedToken,
+		Username: user.Username,
 	}
 
-	c.JSON(200, tokenResponse)
+	c.JSON(http.StatusOK, tokenResponse)
 
 	return
 }
