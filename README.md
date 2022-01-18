@@ -29,9 +29,13 @@ and press Enter.
 
 ---
 
-Otherwise:
+### Not EZ mode
 
-First, in this directory:
+First of all, a mysql server running on `localhost:3306` is needed\
+It should also have a database called `appsec` in it\
+Also, a `root` user with password `toor` is needed 
+
+In this directory:
 
 ```
 go mod tidy
