@@ -40,6 +40,11 @@ go run Web_App_Sec.go
 
 This will run the backend.
 
+In case you want a console app:
+```
+go run Web_App_Sec.go console
+```
+
 
 Then
 

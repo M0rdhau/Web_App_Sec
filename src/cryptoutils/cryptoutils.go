@@ -9,6 +9,62 @@ import (
 	"github.com/m0rdhau/Web_App_Sec/src/utils"
 )
 
+func GenerateDH(prime *uint64, primitive *uint64, userSecret uint64) (serverSecret uint64, sharedSecret uint64, err error) {
+	maxuint := uint64(math.Sqrt(float64(math.MaxUint64)))
+	if *prime > maxuint {
+		err = errors.New("Prime too large, it has to be less than " + fmt.Sprint(maxuint))
+		return
+	}
+	if *prime != 0 && !TestPrime(*prime, 50) {
+		err = errors.New("Provided number is not a prime")
+		return
+	}
+	if *prime == 0 {
+		*prime = GeneratePrime(false)
+	}
+	if *primitive == 0 {
+		*primitive = FindPrimitive(*prime)
+	}
+	if !CheckPrimitive(*prime, *primitive) {
+		err = errors.New("Prime and Primitive do not correspond to each other")
+		return
+	}
+	// Generate our number that we'll (in theory) keep secret
+	// Used for generating our part of the shared secret
+	serverSecret = rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64)))
+	//our part of the shared secret that will go through an insecure medium
+	ourPartial := Modpow(*prime, serverSecret, *primitive)
+	// This will gather user's secret number and generate their part of the shared secret
+	// as well as generating THE shared secret
+	theirPartial := Modpow(*prime, uint64(userSecret), *primitive)
+	sharedOur := Modpow(*prime, serverSecret, uint64(theirPartial))
+	sharedTheir := Modpow(*prime, uint64(userSecret), ourPartial)
+	if sharedOur != sharedTheir {
+		err = errors.New("Unable to match computed secrets with each other")
+		return
+	}
+	return serverSecret, sharedOur, nil
+}
+
+// returns n, e, d
+// pubkey - n + e
+// privkey - d
+func GenerateRSA(p *uint64, q *uint64) (uint64, uint64, uint64, string) {
+	message := ""
+	if *p == 0 || !TestPrime(*p, 50) {
+		message += "First prime is actually not a prime \n"
+		*p = GeneratePrime(true)
+	}
+	if *q == 0 || !TestPrime(*q, 50) {
+		message += "Second prime is actually not a prime"
+		*q = GeneratePrime(true)
+	}
+	lambda := GenerateLambda(*p, *q)
+	e := GenerateCoprime(lambda)
+	d := InverseModulo(int64(e), int64(lambda))
+	return *p * *q, e, d, message
+}
+
 // This and InverseModulo are Extended Euclidean formulas
 // for finding GCD-s. They do the exact same thing, yet They are not the same
 // function due to signatures.
@@ -87,89 +143,6 @@ func GenerateCoprime(lambda uint64) uint64 {
 	return e
 }
 
-func GenerateDH(prime *uint64, primitive *uint64, userSecret uint64) (serverSecret uint64, sharedSecret uint64, err error) {
-	maxuint := uint64(math.Sqrt(float64(math.MaxUint64)))
-	if *prime > maxuint {
-		err = errors.New("Prime too large, it has to be less than " + fmt.Sprint(maxuint))
-		return
-	}
-	if *prime != 0 && !TestPrime(*prime, 50) {
-		err = errors.New("Provided number is not a prime")
-		return
-	}
-	if *prime == 0 {
-		*prime = GeneratePrime(false)
-	}
-	if *primitive == 0 {
-		*primitive = FindPrimitive(*prime)
-	}
-	if !CheckPrimitive(*prime, *primitive) {
-		err = errors.New("Prime and Primitive do not correspond to each other")
-		return
-	}
-	// Generate our number that we'll (in theory) keep secret
-	// Used for generating our part of the shared secret
-	serverSecret = rand.Uint64() % uint64(math.Sqrt(float64(math.MaxUint64)))
-	//our part of the shared secret that will go through an insecure medium
-	ourPartial := Modpow(*prime, serverSecret, *primitive)
-	// This will gather user's secret number and generate their part of the shared secret
-	// as well as generating THE shared secret
-	theirPartial := Modpow(*prime, uint64(userSecret), *primitive)
-	sharedOur := Modpow(*prime, serverSecret, uint64(theirPartial))
-	sharedTheir := Modpow(*prime, uint64(userSecret), ourPartial)
-	if sharedOur != sharedTheir {
-		err = errors.New("Unable to match computed secrets with each other")
-		return
-	}
-	return serverSecret, sharedOur, nil
-}
-
-// returns n, e, d
-// pubkey - n + e
-// privkey - d
-func GenerateRSA(p *uint64, q *uint64) (uint64, uint64, uint64, string) {
-	message := ""
-	if *p == 0 || !TestPrime(*p, 50) {
-		message += "First prime is actually not a prime \n"
-		*p = GeneratePrime(true)
-	}
-	if *q == 0 || !TestPrime(*q, 50) {
-		message += "Second prime is actually not a prime"
-		*q = GeneratePrime(true)
-	}
-	lambda := GenerateLambda(*p, *q)
-	e := GenerateCoprime(lambda)
-	d := InverseModulo(int64(e), int64(lambda))
-	return *p * *q, e, d, message
-}
-
-func FindPrimeFactors(n uint64) []uint64 {
-
-	factors := []uint64{}
-	if n%2 == 0 {
-		factors = append(factors, uint64(2))
-	}
-	for n%2 == 0 {
-		n /= 2
-	}
-
-	for i := uint64(3); i < uint64(math.Sqrt(float64(n))); i += 2 {
-		if n%i == 0 {
-			factors = append(factors, i)
-		}
-		for n%i == 0 {
-			n /= i
-		}
-	}
-
-	if n > 2 {
-		factors = append(factors, n)
-	}
-
-	return factors
-
-}
-
 // Pass prime n and primitive p to check
 // if they are a correct pair
 func CheckPrimitive(n uint64, p uint64) bool {
@@ -211,6 +184,33 @@ func FindPrimitive(n uint64) uint64 {
 		}
 	}
 	return uint64(0)
+}
+
+func FindPrimeFactors(n uint64) []uint64 {
+
+	factors := []uint64{}
+	if n%2 == 0 {
+		factors = append(factors, uint64(2))
+	}
+	for n%2 == 0 {
+		n /= 2
+	}
+
+	for i := uint64(3); i < uint64(math.Sqrt(float64(n))); i += 2 {
+		if n%i == 0 {
+			factors = append(factors, i)
+		}
+		for n%i == 0 {
+			n /= i
+		}
+	}
+
+	if n > 2 {
+		factors = append(factors, n)
+	}
+
+	return factors
+
 }
 
 // n is a possible prime
