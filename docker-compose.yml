@@ -1,0 +1,19 @@
+version: "3.6"
+services:
+    mysql:
+        image: mysql
+        container_name: mysql-appsec
+        environment:
+            - MYSQL_ROOT_PASSWORD=toor
+            - MYSQL_DATABASE=appsec
+        ports:
+            - 3306:9906
+        network_mode: "host"
+    backend:
+        build:
+            context: ./
+        ports:
+            - 8080:8080
+        network_mode: "host"
+        depends_on: 
+          - mysql

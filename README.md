@@ -17,7 +17,21 @@ Old C# code can be found [Here](https://gitlab.cs.ttu.ee/damshv/ics0031-2020f/-/
 
 ## How to?
 
-First, in this repo:
+### EZ mode:
+
+all you have to do is type
+
+```
+docker-compose up
+```
+
+and press Enter.
+
+---
+
+Otherwise:
+
+First, in this directory:
 
 ```
 go mod tidy
@@ -35,8 +49,6 @@ npm start
 ```
 
 This will do all the magick that's required to use the application
-
-If I am alive tomorrow (18/01/2022) then dockerization will be added to the repo
 
 Frontend is written in React + Redux
 
