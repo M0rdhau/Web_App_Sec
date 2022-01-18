@@ -20,7 +20,7 @@ COPY go.sum ./
 RUN go mod download
 
 ADD src ./src
-COPY Wep_App_Sec.go ./
+COPY Web_App_Sec.go ./
 
 COPY --from=frontend /fe/build ./build
 RUN go build -o /Web_App_Sec
