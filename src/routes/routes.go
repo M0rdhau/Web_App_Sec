@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/m0rdhau/Web_App_Sec/src/middlewares"
@@ -8,6 +9,11 @@ import (
 
 func Route() {
 	router := gin.Default()
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowMethods = []string{"GET", "POST", "DELETE"}
+	config.AllowHeaders = []string{"Authorization", "Origin", "content-type"}
+	router.Use(cors.New(config))
 	router.Use(static.Serve("/", static.LocalFile("./build", true)))
 	api := router.Group("/api")
 	{

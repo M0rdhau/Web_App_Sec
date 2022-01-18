@@ -3,10 +3,11 @@ import PropTypes from "prop-types";
 
 export const UserActions = (props) => {
     return (
-        <>
+        <div className="mainParent">
             <div className="encType">
+            <h1>Choose your Encryption!</h1>
                 {props.encTypes.map((type, index) => (
-                    <button name={type.route} key={index} className="encButon" onClick={props.handleEncTypeSwitch}>{type.name}</button>
+                    <button name={type.route} key={index} className="encButton" onClick={props.handleEncTypeSwitch}>{type.name}</button>
                 ))}
             </div>
             <div className="loginForm">
@@ -18,7 +19,7 @@ export const UserActions = (props) => {
                 </div>
                 {props.children}
             </div>
-        </>
+        </div>
     );
 };
 

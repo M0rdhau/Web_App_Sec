@@ -392,9 +392,9 @@ func RSAMenu() {
 	fmt.Println("===============================")
 	fmt.Print("RSA is an asymmetric cryptosystem that uses three numbers for \n" +
 		"Encryption and decryption - n, e and d \n" +
-		"n is an exponent shared by both private and public keys \n" +
-		"e is a modulus used in the public key \n" +
-		"d is a modulus used in the private key \n" +
+		"n is a modulus shared by both private and public keys \n" +
+		"e is an exponent used in the public key \n" +
+		"d is an exponent used in the private key \n" +
 		"if p is plaintext and c is ciphertext \n" +
 		"c = (p)^e % n \n" +
 		"p = (c)^d % n == ((p)^e)^d % n \n")
