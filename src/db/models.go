@@ -1,8 +1,17 @@
 package db
 
 import (
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+type Model struct {
+	gorm.Model
+	UserID uint
+}
 
 type User struct {
 	gorm.Model
@@ -11,7 +20,7 @@ type User struct {
 }
 
 type CaesarEntry struct {
-	gorm.Model
+	Model
 	StrToEncrypt string
 	Key          int32
 	StrEncrypted string
@@ -20,7 +29,7 @@ type CaesarEntry struct {
 }
 
 type VigenereEntry struct {
-	gorm.Model
+	Model
 	StrToEncrypt string
 	Key          string
 	StrEncrypted string
@@ -29,7 +38,7 @@ type VigenereEntry struct {
 }
 
 type DHEntry struct {
-	gorm.Model
+	Model
 	Prime        uint64
 	Primitive    uint64
 	UserSecret   uint64
@@ -40,7 +49,7 @@ type DHEntry struct {
 }
 
 type RSAEntry struct {
-	gorm.Model
+	Model
 	PrimeP  uint64
 	PrimeQ  uint64
 	Private uint64
@@ -51,11 +60,35 @@ type RSAEntry struct {
 }
 
 type RSAEncryption struct {
-	gorm.Model
+	Model
 	Text     string
 	Result   string
 	Exponent uint64
 	Modulus  uint64
 	UserID   uint
 	User     User
+}
+
+func (m *Model) DeleteModel(c *gin.Context, notFoundString string) {
+	user := GetUser(c)
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "Wrong type of id supplied",
+		})
+		c.Abort()
+	}
+	result := GlobalDB.First(&m, id)
+
+	HandleDBErrors(c, result, notFoundString)
+	HandleUserNotAllowed(c, user, m.UserID)
+	result = GlobalDB.Delete(&m)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "Database Failure",
+		})
+		c.Abort()
+	} else {
+		c.String(http.StatusNoContent, "deleted")
+	}
 }

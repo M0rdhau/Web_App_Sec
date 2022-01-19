@@ -2,7 +2,6 @@ package routes
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/m0rdhau/Web_App_Sec/src/db"
@@ -26,48 +25,28 @@ func GetVigenereEntries(c *gin.Context) {
 	entries := make([]db.VigenereEntry, 10)
 	user := db.GetUser(c)
 	entryResult := db.GlobalDB.Where("user_id = ?", user.ID).Order("created_at desc").Find(&entries).Limit(10)
-	responseEntries := make([]vigenereResponse, 0)
-	for _, entry := range entries {
-		responseEntries = append(responseEntries, vigenereResponse{
-			ID:          entry.ID,
-			Shifted:     entry.StrEncrypted,
-			ShiftString: entry.Key,
-			Original:    entry.StrToEncrypt,
-		})
-	}
 	if entryResult.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "Database Failure",
 		})
 		c.Abort()
 	} else {
+		responseEntries := make([]vigenereResponse, 0)
+		for _, entry := range entries {
+			responseEntries = append(responseEntries, vigenereResponse{
+				ID:          entry.ID,
+				Shifted:     entry.StrEncrypted,
+				ShiftString: entry.Key,
+				Original:    entry.StrToEncrypt,
+			})
+		}
 		c.JSON(http.StatusOK, responseEntries)
 	}
 }
 
 func DeleteVigenereEntry(c *gin.Context) {
 	var entry db.VigenereEntry
-	user := db.GetUser(c)
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"msg": "Wrong type of id supplied",
-		})
-		c.Abort()
-	}
-	result := db.GlobalDB.First(&entry, id)
-
-	db.HandleDBErrors(c, result, "Vigenere entry not found")
-	db.HandleUserNotAllowed(c, user, entry.UserID)
-	result = db.GlobalDB.Delete(&entry)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Database Failure",
-		})
-		c.Abort()
-	} else {
-		c.String(http.StatusNoContent, "deleted")
-	}
+	entry.DeleteModel(c, "Vigenere entry not found")
 }
 
 func GetVigenereString(c *gin.Context) {
