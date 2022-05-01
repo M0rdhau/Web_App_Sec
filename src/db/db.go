@@ -20,6 +20,7 @@ func InitDatabase(user string, password string, db_addr string, db_name string) 
 			currErrors++
 			time.Sleep(time.Second)
 			fmt.Println("Trying to reconnect to database....")
+			fmt.Println("user: " + user + "; db_addr: " + db_addr + "; db_name: " + db_name)
 			continue
 		}
 		break
