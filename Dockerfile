@@ -26,6 +26,6 @@ COPY --from=frontend /fe/build ./build
 RUN go build -o /Web_App_Sec
 
 
-EXPOSE 8088
+EXPOSE 8000
 
 CMD ["/Web_App_Sec"]
