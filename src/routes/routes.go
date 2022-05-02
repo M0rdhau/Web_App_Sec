@@ -42,5 +42,5 @@ func Route() {
 			protected.DELETE("/rsa/encrypt/:id", DeleteRSAEncryption)
 		}
 	}
-	router.Run("0.0.0.0:8080")
+	router.Run("0.0.0.0:8000")
 }
